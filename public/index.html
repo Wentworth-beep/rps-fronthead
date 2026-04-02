@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>RPS Cyber Arena | Kirinyaga University</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        /* Theme Variables */
+        body.theme-cyberpunk { --primary: #00f2ff; --primary-dark: #00aaff; --secondary: #bc13fe; --bg: linear-gradient(135deg, #0a0a0c, #1a0033); }
+        body.theme-fire { --primary: #ff4b2b; --primary-dark: #ff6b35; --secondary: #ff8c00; --bg: linear-gradient(135deg, #1a0000, #330000); }
+        body.theme-ice { --primary: #00e5ff; --primary-dark: #4dd0e1; --secondary: #00bcd4; --bg: linear-gradient(135deg, #001a33, #000033); }
+        body.theme-nature { --primary: #00ff88; --primary-dark: #2ecc71; --secondary: #27ae60; --bg: linear-gradient(135deg, #0a1a0a, #003300); }
+        body.theme-space { --primary: #9b59b6; --primary-dark: #e74c3c; --secondary: #8e44ad; --bg: linear-gradient(135deg, #0a0a2a, #1a0033); }
+        body.theme-gold { --primary: #ffd700; --primary-dark: #ff8c00; --secondary: #ffaa00; --bg: linear-gradient(135deg, #1a1a00, #332200); }
+        
+        body { background: var(--bg); background-size: 400% 400%; animation: gradientShift 15s ease infinite; }
+        @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        
+        /* Loading Spinner */
+        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 0.8s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .btn-loading { position: relative; pointer-events: none; opacity: 0.7; }
+        .btn-loading::after { content: ''; position: absolute; width: 18px; height: 18px; top: 50%; left: 50%; margin-left: -9px; margin-top: -9px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; }
+        
+        /* Match Code Display */
+        .match-code-container { background: rgba(0,0,0,0.6); border-radius: 15px; padding: 20px; text-align: center; margin: 20px 0; border: 2px solid var(--primary); animation: pulse 0.5s ease-out; }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .match-code { font-size: 2.5rem; font-weight: bold; letter-spacing: 8px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; font-family: monospace; color: var(--primary); }
+        .copy-btn { background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .copy-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
+        
+        .glass { background: rgba(10, 10, 20, 0.75); backdrop-filter: blur(12px); border-radius: 24px; padding: 25px; margin-bottom: 20px; border: 1px solid var(--primary); transition: all 0.3s ease; }
+        .glass:hover { box-shadow: 0 0 20px var(--primary); }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; padding: 15px 25px; background: rgba(0,0,0,0.5); border-radius: 60px; border-left: 4px solid var(--primary); }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo i { font-size: 2.5rem; color: var(--primary); filter: drop-shadow(0 0 8px var(--primary)); }
+        .logo h1 { font-size: 1.4rem; letter-spacing: 3px; font-family: 'Orbitron', monospace; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info { display: flex; gap: 15px; align-items: center; background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 40px; flex-wrap: wrap; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .rank-badge { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; }
+        
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 1000px) { .game-grid { grid-template-columns: 1fr; } }
+        
+        .section-title { font-family: 'Orbitron', monospace; color: var(--primary); margin-bottom: 20px; font-size: 1.3rem; border-left: 3px solid var(--primary); padding-left: 15px; }
+        
+        .move-buttons { display: flex; justify-content: center; gap: 20px; margin: 25px 0; flex-wrap: wrap; }
+        .move-card { background: linear-gradient(135deg, #16213e, #0f3460); border: 2px solid var(--primary); border-radius: 20px; padding: 20px 35px; cursor: pointer; transition: all 0.2s; color: var(--primary); font-weight: bold; text-align: center; }
+        .move-card:hover { transform: scale(1.05); box-shadow: 0 0 25px var(--primary); }
+        .move-card i { font-size: 2rem; display: block; margin-bottom: 10px; }
+        
+        .result { text-align: center; padding: 15px; background: rgba(0,255,255,0.1); border-radius: 12px; margin: 15px 0; font-weight: bold; }
+        .scoreboard { display: flex; justify-content: space-around; margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 15px; font-size: 1.2rem; }
+        
+        .mode-selection { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin: 50px 0; }
+        .mode-card { background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,50,80,0.8)); border-radius: 30px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; width: 280px; border: 2px solid var(--primary); }
+        .mode-card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 40px var(--primary); }
+        .mode-card i { font-size: 4rem; color: var(--primary); margin-bottom: 20px; }
+        .mode-card h3 { font-size: 1.8rem; margin-bottom: 10px; }
+        
+        .game-area { display: none; }
+        .game-area.active { display: block; }
+        .back-btn { background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 10px; cursor: pointer; margin-bottom: 20px; }
+        
+        /* Stickers */
+        .sticker-pack { display: flex; gap: 15px; justify-content: center; margin: 15px 0; flex-wrap: wrap; }
+        .sticker { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; height: 70px; background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,50,80,0.6)); border-radius: 15px; cursor: pointer; transition: all 0.2s; border: 1px solid var(--primary); }
+        .sticker:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--primary); }
+        .sticker i { font-size: 1.8rem; color: var(--primary); }
+        .sticker span { font-size: 1.2rem; margin-top: 5px; }
+        .sticker-log { max-height: 120px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 10px; }
+        .sticker-message { display: inline-block; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 20px; margin: 3px; animation: stickerPop 0.3s ease-out; }
+        @keyframes stickerPop { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
+        
+        /* Power-up Shop */
+        .powerup-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .powerup-card { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid var(--primary); }
+        .powerup-card:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
+        .powerup-card i { font-size: 2rem; color: var(--primary); }
+        
+        /* Theme Selector */
+        .theme-selector { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .theme-option { width: 80px; height: 80px; border-radius: 15px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 2px solid transparent; }
+        .theme-option:hover { transform: scale(1.1); }
+        .theme-option.selected { border-color: gold; transform: scale(1.05); }
+        
+        /* Tournament Bracket */
+        .tournament-bracket { display: flex; gap: 40px; overflow-x: auto; padding: 20px; justify-content: center; }
+        .bracket-match { background: rgba(0,0,0,0.6); border: 1px solid var(--primary); border-radius: 10px; padding: 15px; min-width: 200px; margin-bottom: 20px; }
+        
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(0,255,255,0.2); align-items: center; }
+        .leaderboard-rank { font-size: 1.2rem; font-weight: bold; color: var(--primary); width: 50px; }
+        
+        .history-item { padding: 8px; border-bottom: 1px solid rgba(0,255,255,0.1); font-size: 0.9rem; }
+        .history-item.win { border-left: 3px solid #00ff88; background: rgba(0,255,136,0.05); }
+        .history-item.lose { border-left: 3px solid #ff4b2b; background: rgba(255,75,43,0.05); }
+        .history-item.tie { border-left: 3px solid #ffaa00; }
+        
+        .achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .achievement { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 15px; text-align: center; }
+        .achievement.unlocked { background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(188,19,254,0.2)); border: 1px solid var(--primary); }
+        .achievement.unlocked i { color: gold; }
+        .achievement.locked { opacity: 0.5; }
+        
+        .stats-dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { text-align: center; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 15px; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        
+        .login-container { max-width: 500px; margin: 80px auto; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
+        .input-group input { width: 100%; padding: 14px 15px 14px 45px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); border-radius: 12px; color: white; }
+        .password-toggle { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--primary); }
+        
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: bold; border: none; transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,255,255,0.4); }
+        .btn-secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        
+        .hidden { display: none; }
+        .error-msg { color: #ff6b6b; padding: 10px; text-align: center; background: rgba(255,107,107,0.1); border-radius: 10px; }
+        .success-msg { color: #51cf66; padding: 10px; text-align: center; background: rgba(81,207,102,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body class="theme-cyberpunk">
+    <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 20px;">
+        <!-- Login Section -->
+        <div id="loginSection" class="glass login-container">
+            <div class="logo" style="justify-content: center; margin-bottom: 20px;">
+                <i class="fas fa-university"></i>
+                <div><h1>KIRINYAGA UNIVERSITY</h1><p>CYBER ARENA | RPS</p></div>
+            </div>
+            <div id="loginMessage"></div>
+            <div id="loginForm">
+                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="loginUsername" placeholder="USERNAME"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('loginPassword', this)"></i></div>
+                <button id="loginBtn" class="btn-primary" style="width: 100%;">LOGIN</button>
+                <button id="showRegisterBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">REGISTER</button>
+            </div>
+            <div id="registerForm" style="display: none; margin-top: 20px;">
+                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="regUsername" placeholder="USERNAME"></div>
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="regEmail" placeholder="EMAIL"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="regPassword" placeholder="PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('regPassword', this)"></i></div>
+                <div class="input-group"><i class="fas fa-check-circle"></i><input type="password" id="regConfirmPassword" placeholder="CONFIRM PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('regConfirmPassword', this)"></i></div>
+                <button id="confirmRegisterBtn" class="btn-primary" style="width: 100%;">CREATE ACCOUNT</button>
+                <button id="backToLoginBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">BACK TO LOGIN</button>
+            </div>
+        </div>
+
+        <!-- Main Game App -->
+        <div id="gameApp" class="hidden">
+            <div class="header">
+                <div class="logo"><i class="fas fa-university"></i><div><h1>KIRINYAGA RPS</h1><p>CYBER ARENA</p></div></div>
+                <div class="user-info">
+                    <div class="avatar" id="avatarBtn"><i class="fas fa-user-ninja" id="avatarIcon"></i></div>
+                    <span class="rank-badge" id="rankDisplay">Bronze</span>
+                    <span><i class="fas fa-chart-line"></i> LVL <span id="userLevel">1</span></span>
+                    <span><i class="fas fa-trophy"></i> <span id="userMMR">500</span></span>
+                    <span><i class="fas fa-coins"></i> <span id="userCoins">100</span></span>
+                    <span><i class="fas fa-globe"></i> <span id="onlineCount">0</span></span>
+                    <button id="logoutBtn">LOGOUT</button>
+                </div>
+            </div>
+
+            <!-- Mode Selection -->
+            <div id="modeSelection" class="mode-selection">
+                <div class="mode-card" data-mode="computer"><i class="fas fa-microchip"></i><h3>VS COMPUTER</h3><p>Practice against AI</p></div>
+                <div class="mode-card" data-mode="multiplayer"><i class="fas fa-wifi"></i><h3>MULTIPLAYER</h3><p>Play with friends</p></div>
+                <div class="mode-card" data-mode="tournament"><i class="fas fa-trophy"></i><h3>TOURNAMENT</h3><p>8-player bracket</p></div>
+            </div>
+
+            <!-- VS Computer Mode -->
+            <div id="computerMode" class="game-area">
+                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="game-grid">
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-microchip"></i> VS COMPUTER</div>
+                        <select id="difficultySelect" style="width: 100%; margin-bottom: 20px;">
+                            <option value="easy">EASY</option><option value="medium">MEDIUM</option><option value="hard">HARD</option>
+                        </select>
+                        <div class="move-buttons">
+                            <div class="move-card" data-move="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
+                            <div class="move-card" data-move="paper"><i class="fas fa-hand-peace"></i><div>PAPER</div></div>
+                            <div class="move-card" data-move="scissors"><i class="fas fa-hand-scissors"></i><div>SCISSORS</div></div>
+                        </div>
+                        <div id="computerResult" class="result"></div>
+                        <div class="scoreboard"><span>YOU: <span id="userScore">0</span></span><span>CPU: <span id="computerScore">0</span></span></div>
+                    </div>
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-chart-line"></i> STATS</div>
+                        <div class="stats-dashboard">
+                            <div class="stat-card"><div class="stat-value" id="statWins">0</div><div>Wins</div></div>
+                            <div class="stat-card"><div class="stat-value" id="statGames">0</div><div>Games</div></div>
+                            <div class="stat-card"><div class="stat-value" id="winRateDisplay">0%</div><div>Win Rate</div></div>
+                            <div class="stat-card"><div class="stat-value" id="userCoinsDisplay">100</div><div>Coins</div></div>
+                        </div>
+                        <div class="section-title"><i class="fas fa-store"></i> POWER-UP SHOP</div>
+                        <div id="powerupShop" class="powerup-shop"></div>
+                        <div class="section-title"><i class="fas fa-palette"></i> THEMES</div>
+                        <div id="themeSelector" class="theme-selector"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multiplayer Mode -->
+            <div id="multiplayerMode" class="game-area">
+                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="game-grid">
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-wifi"></i> MULTIPLAYER ARENA</div>
+                        <div id="createMatchSection"><button id="createMatchBtn" class="btn-primary" style="width: 100%;">CREATE NEW MATCH</button></div>
+                        <div id="matchCodeDisplay" class="hidden match-code-container">
+                            <p>Share this code with your opponent:</p>
+                            <div class="match-code" id="matchCodeValue">XXXXXX</div>
+                            <button id="copyMatchCodeBtn" class="copy-btn" style="margin-top: 15px;"><i class="fas fa-copy"></i> COPY CODE</button>
+                            <div class="loading-spinner" style="margin: 10px auto;"></div>
+                        </div>
+                        <div style="margin: 20px 0;">
+                            <p>Or join existing match:</p>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="joinMatchCode" placeholder="ENTER MATCH CODE" style="flex:2; text-transform:uppercase; text-align:center; font-size:1.2rem; letter-spacing:3px;">
+                                <button id="joinMatchBtn" class="btn-secondary" style="flex:1;">JOIN</button>
+                            </div>
+                        </div>
+                        <div id="multiStatus" class="result">No active match</div>
+                        <div id="multiGameArea" class="hidden">
+                            <div style="text-align:center; margin:20px 0;">
+                                <div style="display:flex; justify-content:space-around; align-items:center;">
+                                    <div style="text-align:center;"><i class="fas fa-user-circle" style="font-size:3rem;"></i><div id="player1Name">YOU</div><div id="player1Move" style="font-size:2rem;">❓</div></div>
+                                    <div style="font-size:2rem;">VS</div>
+                                    <div style="text-align:center;"><i class="fas fa-user-circle" style="font-size:3rem;"></i><div id="player2Name">OPPONENT</div><div id="player2Move" style="font-size:2rem;">❓</div></div>
+                                </div>
+                            </div>
+                            <div id="multiMoves" class="move-buttons">
+                                <div class="move-card" data-mmove="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
+                                <div class="move-card" data-mmove="paper"><i class="fas fa-hand-peace"></i><div>PAPER</div></div>
+                                <div class="move-card" data-mmove="scissors"><i class="fas fa-hand-scissors"></i><div>SCISSORS</div></div>
+                            </div>
+                        </div>
+                        <div id="stickerArea" class="hidden">
+                            <div class="section-title"><i class="fas fa-sticker-mule"></i> SEND STICKER</div>
+                            <div class="sticker-pack">
+                                <div class="sticker" data-sticker="🔥 FIRE"><i class="fas fa-fire"></i><span>🔥</span></div>
+                                <div class="sticker" data-sticker="😂 LOL"><i class="fas fa-face-grin-tongue-squint"></i><span>😂</span></div>
+                                <div class="sticker" data-sticker="👍 GG"><i class="fas fa-thumbs-up"></i><span>👍</span></div>
+                                <div class="sticker" data-sticker="👏 CLAP"><i class="fas fa-hands-clapping"></i><span>👏</span></div>
+                                <div class="sticker" data-sticker="😢 CRY"><i class="fas fa-face-sad-tear"></i><span>😢</span></div>
+                                <div class="sticker" data-sticker="❤️ HEART"><i class="fas fa-heart"></i><span>❤️</span></div>
+                            </div>
+                            <div id="stickerLog" class="sticker-log"></div>
+                        </div>
+                    </div>
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-trophy"></i> LEADERBOARD</div>
+                        <div id="leaderboardList" style="max-height: 300px; overflow-y: auto;"></div>
+                        <div class="section-title"><i class="fas fa-history"></i> MATCH HISTORY</div>
+                        <div id="matchHistory" style="max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tournament Mode -->
+            <div id="tournamentMode" class="game-area">
+                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="glass">
+                    <div class="section-title"><i class="fas fa-trophy"></i> TOURNAMENT</div>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <button id="createTournamentBtn" class="btn-primary">CREATE TOURNAMENT</button>
+                        <input type="text" id="joinTournamentCode" placeholder="TOURNAMENT CODE" style="flex:1;">
+                        <button id="joinTournamentBtn" class="btn-secondary">JOIN</button>
+                    </div>
+                    <div id="tournamentStatus" class="result">No active tournament</div>
+                    <div id="tournamentBracket" class="tournament-bracket"></div>
+                </div>
+            </div>
+
+            <!-- Bottom Sections -->
+            <div class="game-grid">
+                <div class="glass">
+                    <div class="section-title"><i class="fas fa-medal"></i> ACHIEVEMENTS</div>
+                    <div id="achievementsList" class="achievement-grid"></div>
+                </div>
+                <div class="glass">
+                    <div class="section-title"><i class="fas fa-store"></i> POWER-UPS & THEMES</div>
+                    <div id="powerupShop2" class="powerup-shop"></div>
+                    <div id="themeSelector2" class="theme-selector" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px;">
+        <div class="glass">
+            <div class="section-title">CUSTOMIZE AVATAR</div>
+            <div class="avatar-selector" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <div class="avatar-option" data-avatar="ninja"><i class="fas fa-user-ninja"></i></div>
+                <div class="avatar-option" data-avatar="robot"><i class="fas fa-robot"></i></div>
+                <div class="avatar-option" data-avatar="dragon"><i class="fas fa-dragon"></i></div>
+                <div class="avatar-option" data-avatar="wizard"><i class="fas fa-hat-wizard"></i></div>
+                <div class="avatar-option" data-avatar="ghost"><i class="fas fa-ghost"></i></div>
+            </div>
+            <button id="closeProfileModal" style="width: 100%; margin-top: 15px;">CLOSE</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentUser = null;
+        let currentMatchCode = null;
+        let userScore = 0, computerScore = 0;
+        
+        // Audio Context
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(frequency, duration, volume) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = frequency;
+            gainNode.gain.value = volume || 0.3;
+            oscillator.start();
+            setTimeout(() => { oscillator.stop(); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.1); }, duration);
+        }
+        function playWinSound() { playBeep(880,200,0.3); setTimeout(()=>playBeep(1046.5,300,0.3),200); setTimeout(()=>playBeep(1318.52,500,0.3),500); canvasConfetti({particleCount:150,spread:70,origin:{y:0.6}}); }
+        function playLoseSound() { playBeep(440,300,0.3); setTimeout(()=>playBeep(349.23,400,0.3),300); }
+        function playDrawSound() { playBeep(587.33,200,0.2); setTimeout(()=>playBeep(587.33,200,0.2),250); }
+        function playClickSound() { playBeep(800,50,0.1); }
+        
+        // Themes
+        const themes = { cyberpunk:'Cyberpunk', fire:'Fire', ice:'Ice', nature:'Nature', space:'Space', gold:'Gold' };
+        function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); }
+        function loadThemes() {
+            const container = document.getElementById('themeSelector');
+            const container2 = document.getElementById('themeSelector2');
+            const html = Object.entries(themes).map(([id, name]) => `<div class="theme-option" data-theme="${id}" style="background: linear-gradient(135deg, var(--primary), var(--secondary));"><i class="fas fa-palette"></i><span>${name}</span></div>`).join('');
+            if(container) container.innerHTML = html;
+            if(container2) container2.innerHTML = html;
+            document.querySelectorAll('.theme-option').forEach(opt => { opt.onclick = () => { applyTheme(opt.getAttribute('data-theme')); playClickSound(); }; });
+        }
+        
+        // Power-ups
+        const powerUps = { double_points: { name: 'Double Points', icon: 'fa-bolt', cost: 500 }, shield: { name: 'Shield', icon: 'fa-shield-alt', cost: 300 }, prediction: { name: 'Prediction', icon: 'fa-eye', cost: 400 }, lucky_charm: { name: 'Lucky Charm', icon: 'fa-clover', cost: 600 } };
+        function loadPowerups() {
+            const container = document.getElementById('powerupShop');
+            const container2 = document.getElementById('powerupShop2');
+            const html = Object.entries(powerUps).map(([id, p]) => `<div class="powerup-card" data-powerup="${id}"><i class="fas ${p.icon}"></i><div><strong>${p.name}</strong></div><div style="color:gold;">${p.cost} coins</div><button class="buy-powerup">BUY</button></div>`).join('');
+            if(container) container.innerHTML = html;
+            if(container2) container2.innerHTML = html;
+            document.querySelectorAll('.buy-powerup').forEach((btn,i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${Object.values(powerUps)[i].name}!`); }; });
+        }
+        
+        // Achievements
+        const achievements = [
+            { id: 'first_blood', name: 'First Blood', description: 'Win your first match', icon: 'fa-trophy', unlocked: true },
+            { id: 'warrior', name: 'Warrior', description: 'Win 10 matches', icon: 'fa-shield-alt', unlocked: false },
+            { id: 'legendary', name: 'Legendary', description: 'Win 50 matches', icon: 'fa-crown', unlocked: false }
+        ];
+        function loadAchievements() {
+            const container = document.getElementById('achievementsList');
+            container.innerHTML = achievements.map(a => `<div class="achievement ${a.unlocked ? 'unlocked' : 'locked'}"><i class="fas ${a.icon}"></i><div><strong>${a.name}</strong></div><small>${a.description}</small></div>`).join('');
+        }
+        
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+            else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+        }
+        
+        function showModeSelection() { document.querySelectorAll('.game-area').forEach(area => area.classList.remove('active')); document.getElementById('modeSelection').style.display = 'flex'; }
+        function selectMode(mode) { document.getElementById('modeSelection').style.display = 'none'; document.getElementById(mode + 'Mode').classList.add('active'); }
+        
+        function showLoading(btn) { btn.classList.add('btn-loading'); btn.disabled = true; const originalText = btn.innerHTML; btn.innerHTML = '<span class="loading-spinner"></span> Loading...'; return () => { btn.classList.remove('btn-loading'); btn.disabled = false; btn.innerHTML = originalText; }; }
+        
+        function copyMatchCode() {
+            const code = document.getElementById('matchCodeValue').textContent;
+            navigator.clipboard.writeText(code);
+            const copyBtn = document.getElementById('copyMatchCodeBtn');
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
+            setTimeout(() => { copyBtn.innerHTML = originalText; }, 2000);
+            playClickSound();
+        }
+        
+        async function login(username, password) {
+            const btn = document.getElementById('loginBtn');
+            const resetLoading = showLoading(btn);
+            try {
+                const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+                const data = await res.json();
+                if (res.ok) {
+                    currentUser = data.user;
+                    localStorage.setItem('token', data.token);
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('gameApp').classList.remove('hidden');
+                    document.getElementById('rankDisplay').textContent = currentUser.rank || 'Bronze';
+                    document.getElementById('userLevel').textContent = currentUser.level || 1;
+                    document.getElementById('userMMR').textContent = currentUser.mmr || 500;
+                    document.getElementById('userCoins').textContent = currentUser.coins || 100;
+                    document.getElementById('userCoinsDisplay').textContent = currentUser.coins || 100;
+                    socket.emit('user-online', { userId: currentUser.id, username: currentUser.username });
+                    
+                    const lbRes = await fetch('/api/leaderboard', { headers: { 'Authorization': `Bearer ${data.token}` } });
+                    const leaders = await lbRes.json();
+                    document.getElementById('leaderboardList').innerHTML = leaders.map((l,i) => `<div class="leaderboard-item"><div class="leaderboard-rank">#${i+1}</div><div>${l.username}</div><div>${l.wins} wins</div><div>${l.mmr} MMR</div></div>`).join('');
+                } else { document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`; }
+            } catch(error) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Connection error</div>'; }
+            resetLoading();
+        }
+        
+        async function register(username, email, password, confirmPassword) {
+            if (!username || !email || !password) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Please fill all fields</div>'; return; }
+            if (password !== confirmPassword) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Passwords do not match</div>'; return; }
+            try {
+                const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, email, password }) });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('loginMessage').innerHTML = '<div class="success-msg">Registration successful! Please login.</div>';
+                    document.getElementById('registerForm').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                    document.getElementById('loginUsername').value = username;
+                } else { document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`; }
+            } catch(error) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Registration failed</div>'; }
+        }
+        
+        function logout() { localStorage.removeItem('token'); currentUser = null; document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('gameApp').classList.add('hidden'); document.getElementById('modeSelection').style.display = 'flex'; }
+        
+        async function playVsComputer(move) {
+            const token = localStorage.getItem('token');
+            const difficulty = document.getElementById('difficultySelect').value;
+            const res = await fetch('/api/game/computer', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ playerMove: move, difficulty }) });
+            const data = await res.json();
+            let resultText = `You: ${data.playerMove} | CPU: ${data.computerMove} → `;
+            if (data.result === 'win') { resultText += 'VICTORY!'; userScore++; playWinSound(); }
+            else if (data.result === 'lose') { resultText += 'DEFEAT!'; computerScore++; playLoseSound(); }
+            else { resultText += 'DRAW!'; playDrawSound(); }
+            document.getElementById('computerResult').innerHTML = resultText;
+            document.getElementById('userScore').textContent = userScore;
+            document.getElementById('computerScore').textContent = computerScore;
+            document.getElementById('statWins').textContent = userScore;
+            document.getElementById('statGames').textContent = userScore + computerScore;
+            const winRate = (userScore + computerScore) > 0 ? Math.round((userScore / (userScore + computerScore)) * 100) : 0;
+            document.getElementById('winRateDisplay').textContent = winRate + '%';
+        }
+        
+        // Multiplayer functions
+        function createMatch() { playClickSound(); if (!currentUser) return; socket.emit('create-match', { userId: currentUser.id, username: currentUser.username }); }
+        function joinMatch() {
+            playClickSound();
+            const code = document.getElementById('joinMatchCode').value.trim().toUpperCase();
+            if (!code) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Please enter a match code</div>'; return; }
+            socket.emit('join-match', { matchCode: code, userId: currentUser.id, username: currentUser.username });
+            currentMatchCode = code;
+        }
+        function makeMultiMove(move) { if (!currentMatchCode) return; socket.emit('make-move', { matchCode: currentMatchCode, userId: currentUser.id, move }); document.getElementById('multiStatus').innerHTML = 'Move sent! Waiting...'; }
+        function sendSticker(sticker) { if (!currentMatchCode) return; socket.emit('send-sticker', { matchCode: currentMatchCode, username: currentUser.username, sticker: sticker }); }
+        
+        // Tournament functions
+        function createTournament() { playClickSound(); alert('Tournament created! (Demo)'); document.getElementById('tournamentStatus').innerHTML = 'Tournament created! Code: TOUR123'; }
+        function joinTournament() { playClickSound(); const code = document.getElementById('joinTournamentCode').value; if(code) document.getElementById('tournamentStatus').innerHTML = `Joined tournament ${code}! Waiting for 8 players...`; }
+        
+        // Socket events
+        socket.on('online-count', (data) => { document.getElementById('onlineCount').textContent = data.count; });
+        socket.on('match-created', (data) => {
+            currentMatchCode = data.matchCode;
+            document.getElementById('matchCodeValue').textContent = data.matchCode;
+            document.getElementById('matchCodeDisplay').classList.remove('hidden');
+            document.getElementById('createMatchSection').classList.add('hidden');
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Match created! Share the code with your opponent.</div>';
+        });
+        socket.on('match-started', () => {
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Match started! Make your move!</div>';
+            document.getElementById('multiGameArea').classList.remove('hidden');
+            document.getElementById('stickerArea').classList.remove('hidden');
+            document.getElementById('matchCodeDisplay').classList.add('hidden');
+            document.getElementById('createMatchSection').classList.remove('hidden');
+        });
+        socket.on('game-result', (data) => {
+            document.getElementById('player1Move').innerHTML = data.hostMove === 'rock' ? '✊' : (data.hostMove === 'paper' ? '✋' : '✌️');
+            document.getElementById('player2Move').innerHTML = data.opponentMove === 'rock' ? '✊' : (data.opponentMove === 'paper' ? '✋' : '✌️');
+            let result = '';
+            if (data.winner === 'tie') { result = 'DRAW!'; playDrawSound(); }
+            else if (data.winner === currentUser?.id) { result = 'YOU WIN!'; playWinSound(); }
+            else { result = 'YOU LOSE!'; playLoseSound(); }
+            document.getElementById('multiStatus').innerHTML = `<div class="${result === 'YOU WIN!' ? 'success-msg' : 'error-msg'}">${result}</div>`;
+            setTimeout(() => {
+                document.getElementById('multiGameArea').classList.add('hidden');
+                document.getElementById('stickerArea').classList.add('hidden');
+                document.getElementById('matchCodeDisplay').classList.add('hidden');
+                document.getElementById('createMatchSection').classList.remove('hidden');
+                document.getElementById('multiStatus').innerHTML = 'No active match';
+                currentMatchCode = null;
+            }, 4000);
+        });
+        socket.on('new-sticker', (data) => {
+            const log = document.getElementById('stickerLog');
+            const stickerMsg = document.createElement('div');
+            stickerMsg.className = 'sticker-message';
+            stickerMsg.innerHTML = `<strong>${data.username}</strong> sent ${data.sticker}`;
+            log.insertBefore(stickerMsg, log.firstChild);
+            if (log.children.length > 15) log.removeChild(log.lastChild);
+            playBeep(600,100,0.2);
+        });
+        socket.on('join-error', (data) => { document.getElementById('multiStatus').innerHTML = `<div class="error-msg">${data.error}</div>`; });
+        
+        // Event listeners
+        document.getElementById('loginBtn').onclick = () => login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
+        document.getElementById('showRegisterBtn').onclick = () => { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; };
+        document.getElementById('backToLoginBtn').onclick = () => { document.getElementById('registerForm').style.display = 'none'; document.getElementById('loginForm').style.display = 'block'; };
+        document.getElementById('confirmRegisterBtn').onclick = () => register(document.getElementById('regUsername').value, document.getElementById('regEmail').value, document.getElementById('regPassword').value, document.getElementById('regConfirmPassword').value);
+        document.getElementById('logoutBtn').onclick = logout;
+        document.getElementById('createMatchBtn').onclick = createMatch;
+        document.getElementById('joinMatchBtn').onclick = joinMatch;
+        document.getElementById('copyMatchCodeBtn').onclick = copyMatchCode;
+        document.getElementById('createTournamentBtn').onclick = createTournament;
+        document.getElementById('joinTournamentBtn').onclick = joinTournament;
+        document.getElementById('avatarBtn').onclick = () => document.getElementById('profileModal').classList.toggle('hidden');
+        document.getElementById('closeProfileModal').onclick = () => document.getElementById('profileModal').classList.add('hidden');
+        
+        document.querySelectorAll('.avatar-option').forEach(opt => { opt.onclick = () => { const avatar = opt.getAttribute('data-avatar'); document.getElementById('avatarIcon').className = `fas fa-user-${avatar}`; document.getElementById('profileModal').classList.add('hidden'); playClickSound(); }; });
+        document.querySelectorAll('[data-move]').forEach(btn => { btn.onclick = () => playVsComputer(btn.getAttribute('data-move')); });
+        document.querySelectorAll('[data-mmove]').forEach(btn => { btn.onclick = () => makeMultiMove(btn.getAttribute('data-mmove')); });
+        document.querySelectorAll('.sticker').forEach(sticker => { sticker.onclick = () => sendSticker(sticker.getAttribute('data-sticker')); });
+        document.querySelectorAll('.mode-card').forEach(card => { card.onclick = () => selectMode(card.getAttribute('data-mode')); });
+        
+        loadThemes();
+        loadPowerups();
+        loadAchievements();
+        
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch('/api/verify-token', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(data => {
+                if (data.valid) { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('gameApp').classList.remove('hidden'); socket.emit('user-online', { userId: data.user.id, username: data.user.username }); }
+            });
+        }
+        document.body.addEventListener('click', () => { if (audioContext.state === 'suspended') audioContext.resume(); }, { once: true });
+    </script>
+</body>
+</html>
