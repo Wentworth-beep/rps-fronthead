@@ -18,7 +18,6 @@
             transition: all 0.3s ease;
         }
         
-        /* Theme Variables */
         body.theme-cyberpunk { --primary: #00f2ff; --primary-dark: #00aaff; --secondary: #bc13fe; --bg: linear-gradient(135deg, #0a0a0c, #1a0033); }
         body.theme-fire { --primary: #ff4b2b; --primary-dark: #ff6b35; --secondary: #ff8c00; --bg: linear-gradient(135deg, #1a0000, #330000); }
         body.theme-ice { --primary: #00e5ff; --primary-dark: #4dd0e1; --secondary: #00bcd4; --bg: linear-gradient(135deg, #001a33, #000033); }
@@ -29,13 +28,52 @@
         body { background: var(--bg); background-size: 400% 400%; animation: gradientShift 15s ease infinite; }
         @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         
-        /* Loading Spinner */
+        /* Computer Thinking Animation */
+        .thinking-animation {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-left: 10px;
+        }
+        
+        .computer-thinking {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        .computer-move-icon {
+            font-size: 4rem;
+            transition: all 0.3s;
+        }
+        
+        .computer-move-icon.shake {
+            animation: computerShake 0.3s ease-in-out;
+        }
+        
+        @keyframes computerShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
         .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 0.8s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* Match Code Display */
-        .match-code-container { background: rgba(0,0,0,0.6); border-radius: 15px; padding: 20px; text-align: center; margin: 20px 0; border: 2px solid var(--primary); animation: pulse 0.5s ease-out; }
-        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .match-code-container { background: rgba(0,0,0,0.6); border-radius: 15px; padding: 20px; text-align: center; margin: 20px 0; border: 2px solid var(--primary); animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .match-code { font-size: 2rem; font-weight: bold; letter-spacing: 5px; font-family: monospace; color: var(--primary); }
         .copy-btn { background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
         .copy-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
@@ -74,7 +112,6 @@
         .game-area.active { display: block; }
         .back-btn { background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 10px; cursor: pointer; margin-bottom: 20px; }
         
-        /* Stickers */
         .sticker-pack { display: flex; gap: 15px; justify-content: center; margin: 15px 0; flex-wrap: wrap; }
         .sticker { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; height: 70px; background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,50,80,0.6)); border-radius: 15px; cursor: pointer; transition: all 0.2s; border: 1px solid var(--primary); }
         .sticker:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--primary); }
@@ -84,19 +121,16 @@
         .sticker-message { display: inline-block; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 20px; margin: 3px; animation: stickerPop 0.3s ease-out; }
         @keyframes stickerPop { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
         
-        /* Power-up Shop */
         .powerup-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         .powerup-card { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid var(--primary); }
         .powerup-card:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
         .powerup-card i { font-size: 2rem; color: var(--primary); }
         
-        /* Theme Selector */
         .theme-selector { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
         .theme-option { width: 80px; height: 80px; border-radius: 15px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 2px solid transparent; }
         .theme-option:hover { transform: scale(1.1); }
         .theme-option.selected { border-color: gold; transform: scale(1.05); }
         
-        /* Tournament Bracket */
         .tournament-bracket { display: flex; gap: 40px; overflow-x: auto; padding: 20px; justify-content: center; }
         .bracket-match { background: rgba(0,0,0,0.6); border: 1px solid var(--primary); border-radius: 10px; padding: 15px; min-width: 200px; margin-bottom: 20px; }
         
@@ -189,6 +223,13 @@
                         <select id="difficultySelect" style="width: 100%; margin-bottom: 20px;">
                             <option value="easy">EASY</option><option value="medium">MEDIUM</option><option value="hard">HARD</option>
                         </select>
+                        
+                        <!-- Computer Thinking Area -->
+                        <div id="computerThinkingArea" class="computer-thinking">
+                            <div id="computerMoveIcon" class="computer-move-icon">🤖</div>
+                            <div id="computerThinkingText">Click a move to start</div>
+                        </div>
+                        
                         <div class="move-buttons">
                             <div class="move-card" data-move="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
                             <div class="move-card" data-move="paper"><i class="fas fa-hand-peace"></i><div>PAPER</div></div>
@@ -317,10 +358,8 @@
 
     <script>
         // ============ CONFIGURATION ============
-        // Your Render backend URL
         const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
         
-        // Socket connection
         const socket = io(BACKEND_URL, {
             transports: ['websocket', 'polling'],
             withCredentials: true
@@ -398,6 +437,42 @@
             copyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
             setTimeout(() => { copyBtn.innerHTML = originalText; }, 2000);
             playClickSound();
+        }
+        
+        // Computer thinking animation
+        function showComputerThinking() {
+            const thinkingArea = document.getElementById('computerThinkingArea');
+            const thinkingText = document.getElementById('computerThinkingText');
+            const moveIcon = document.getElementById('computerMoveIcon');
+            
+            thinkingArea.style.animation = 'pulse 0.5s ease-in-out';
+            thinkingText.innerHTML = 'Computer is thinking <span class="thinking-animation"></span>';
+            moveIcon.innerHTML = '🤔';
+            moveIcon.classList.add('shake');
+            
+            setTimeout(() => {
+                moveIcon.classList.remove('shake');
+            }, 300);
+        }
+        
+        function showComputerMove(move) {
+            const moveIcon = document.getElementById('computerMoveIcon');
+            const thinkingText = document.getElementById('computerThinkingText');
+            const moveIcons = { rock: '✊', paper: '✋', scissors: '✌️' };
+            
+            moveIcon.innerHTML = moveIcons[move];
+            thinkingText.innerHTML = `Computer chose ${move.toUpperCase()}!`;
+            moveIcon.classList.add('shake');
+            
+            setTimeout(() => {
+                moveIcon.classList.remove('shake');
+            }, 300);
+            
+            setTimeout(() => {
+                thinkingText.innerHTML = 'Click a move to play';
+                moveIcon.innerHTML = '🤖';
+                thinkingArea.style.animation = '';
+            }, 1500);
         }
         
         async function login(username, password) {
@@ -491,12 +566,23 @@
         async function playVsComputer(move) {
             const token = localStorage.getItem('token');
             const difficulty = document.getElementById('difficultySelect').value;
+            
+            // Show thinking animation
+            showComputerThinking();
+            
+            // Small delay to show thinking animation
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
             const res = await fetch(`${BACKEND_URL}/api/game/computer`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ playerMove: move, difficulty })
             });
             const data = await res.json();
+            
+            // Show computer's move
+            showComputerMove(data.computerMove);
+            
             let resultText = `You: ${data.playerMove} | CPU: ${data.computerMove} → `;
             if (data.result === 'win') {
                 resultText += 'VICTORY!';
@@ -520,38 +606,79 @@
         }
         
         // Multiplayer functions
-        function createMatch() { playClickSound(); if (!currentUser) return; socket.emit('create-match', { userId: currentUser.id, username: currentUser.username }); }
+        function createMatch() { 
+            playClickSound(); 
+            if (!currentUser) {
+                alert('Please login first');
+                return;
+            }
+            console.log('Creating match for user:', currentUser.id);
+            socket.emit('create-match', { userId: currentUser.id, username: currentUser.username });
+        }
+        
         function joinMatch() {
             playClickSound();
             const code = document.getElementById('joinMatchCode').value.trim().toUpperCase();
-            if (!code) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Please enter a match code</div>'; return; }
+            if (!code) { 
+                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Please enter a match code</div>'; 
+                return; 
+            }
+            console.log('Joining match with code:', code);
             socket.emit('join-match', { matchCode: code, userId: currentUser.id, username: currentUser.username });
             currentMatchCode = code;
         }
-        function makeMultiMove(move) { if (!currentMatchCode) return; socket.emit('make-move', { matchCode: currentMatchCode, userId: currentUser.id, move }); document.getElementById('multiStatus').innerHTML = 'Move sent. Waiting...'; }
-        function sendSticker(sticker) { if (!currentMatchCode) return; socket.emit('send-sticker', { matchCode: currentMatchCode, username: currentUser.username, sticker: sticker }); }
+        
+        function makeMultiMove(move) { 
+            if (!currentMatchCode) {
+                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">No active match</div>';
+                return; 
+            }
+            socket.emit('make-move', { matchCode: currentMatchCode, userId: currentUser.id, move: move }); 
+            document.getElementById('multiStatus').innerHTML = 'Move sent. Waiting for opponent...';
+        }
+        
+        function sendSticker(sticker) { 
+            if (!currentMatchCode) {
+                alert('No active match to send stickers');
+                return; 
+            }
+            socket.emit('send-sticker', { matchCode: currentMatchCode, username: currentUser.username, sticker: sticker }); 
+        }
         
         // Tournament functions
-        function createTournament() { playClickSound(); alert('Tournament created! (Demo)'); document.getElementById('tournamentStatus').innerHTML = 'Tournament created! Code: TOUR123'; }
+        function createTournament() { playClickSound(); alert('Tournament created! Code: TOUR123'); document.getElementById('tournamentStatus').innerHTML = 'Tournament created! Code: TOUR123'; }
         function joinTournament() { playClickSound(); const code = document.getElementById('joinTournamentCode').value; if(code) document.getElementById('tournamentStatus').innerHTML = `Joined tournament ${code}! Waiting for 8 players...`; }
         
         // Socket events
-        socket.on('online-count', (data) => { document.getElementById('onlineCount').textContent = data.count; });
+        socket.on('connect', () => {
+            console.log('Socket connected:', socket.id);
+        });
+        
+        socket.on('online-count', (data) => { 
+            document.getElementById('onlineCount').textContent = data.count;
+            console.log('Online count:', data.count);
+        });
+        
         socket.on('match-created', (data) => {
+            console.log('Match created event received:', data);
             currentMatchCode = data.matchCode;
             document.getElementById('matchCodeValue').textContent = data.matchCode;
             document.getElementById('matchCodeDisplay').classList.remove('hidden');
             document.getElementById('createMatchSection').classList.add('hidden');
             document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Match created! Share the code with your opponent.</div>';
         });
-        socket.on('match-started', () => {
+        
+        socket.on('match-started', (data) => {
+            console.log('Match started event received:', data);
             document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Match started! Make your move!</div>';
             document.getElementById('multiGameArea').classList.remove('hidden');
             document.getElementById('stickerArea').classList.remove('hidden');
             document.getElementById('matchCodeDisplay').classList.add('hidden');
             document.getElementById('createMatchSection').classList.remove('hidden');
         });
+        
         socket.on('game-result', (data) => {
+            console.log('Game result:', data);
             document.getElementById('player1Move').innerHTML = data.hostMove === 'rock' ? '✊' : (data.hostMove === 'paper' ? '✋' : '✌️');
             document.getElementById('player2Move').innerHTML = data.opponentMove === 'rock' ? '✊' : (data.opponentMove === 'paper' ? '✋' : '✌️');
             let result = '';
@@ -568,7 +695,9 @@
                 currentMatchCode = null;
             }, 4000);
         });
+        
         socket.on('new-sticker', (data) => {
+            console.log('New sticker:', data);
             const log = document.getElementById('stickerLog');
             const stickerMsg = document.createElement('div');
             stickerMsg.className = 'sticker-message';
@@ -577,7 +706,11 @@
             if (log.children.length > 15) log.removeChild(log.lastChild);
             playBeep(600,100,0.2);
         });
-        socket.on('join-error', (data) => { document.getElementById('multiStatus').innerHTML = `<div class="error-msg">${data.error}</div>`; });
+        
+        socket.on('join-error', (data) => { 
+            console.log('Join error:', data);
+            document.getElementById('multiStatus').innerHTML = `<div class="error-msg">${data.error}</div>`; 
+        });
         
         // Event listeners
         document.getElementById('loginBtn').onclick = () => login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
@@ -606,7 +739,12 @@
         const token = localStorage.getItem('token');
         if (token) {
             fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(data => {
-                if (data.valid) { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('gameApp').classList.remove('hidden'); socket.emit('user-online', { userId: data.user.id, username: data.user.username }); loadLeaderboard(); }
+                if (data.valid) { 
+                    document.getElementById('loginSection').classList.add('hidden'); 
+                    document.getElementById('gameApp').classList.remove('hidden'); 
+                    socket.emit('user-online', { userId: data.user.id, username: data.user.username }); 
+                    loadLeaderboard(); 
+                }
             });
         }
         document.body.addEventListener('click', () => { if (audioContext.state === 'suspended') audioContext.resume(); }, { once: true });
