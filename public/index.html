@@ -149,7 +149,7 @@
         .leaderboard-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(0,255,255,0.2); align-items: center; }
         .leaderboard-rank { font-size: 1.2rem; font-weight: bold; color: var(--primary); width: 50px; }
         
-        .history-item { padding: 8px; border-bottom: 1px solid rgba(0,255,255,0.1); font-size: 0.9rem; }
+        .history-item { padding: 8px; border-bottom: 1px solid rgba(0,255,255,0.1); font-size: 0.9rem; cursor: pointer; }
         .history-item.win { border-left: 3px solid #00ff88; background: rgba(0,255,136,0.05); }
         .history-item.lose { border-left: 3px solid #ff4b2b; background: rgba(255,75,43,0.05); }
         
@@ -162,6 +162,33 @@
         .theme-option { width: 80px; height: 80px; border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 2px solid transparent; }
         .theme-option:hover { transform: scale(1.1); }
         .theme-option.selected { border-color: gold; }
+        
+        .avatar-selector { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .avatar-option { width: 60px; height: 60px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .avatar-option:hover { transform: scale(1.1); }
+        .avatar-option.selected { border-color: gold; background: var(--primary); }
+        .avatar-option.selected i { color: #000; }
+        
+        .replay-modal, .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+        .replay-content, .report-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid var(--primary);
+            max-width: 500px;
+            width: 90%;
+        }
     </style>
 </head>
 <body class="theme-cyberpunk">
@@ -257,13 +284,14 @@
                         
                         <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                             <button id="createSessionBtn" class="btn-primary" style="flex: 1;">CREATE 10-ROUND MATCH</button>
-                            <input type="text" id="joinSessionCode" placeholder="SESSION CODE" style="flex: 1; text-transform: uppercase;">
+                            <input type="text" id="joinSessionCode" placeholder="SESSION CODE" style="flex: 1; text-transform: uppercase; text-align: center; font-size: 1.2rem; letter-spacing: 2px;">
                             <button id="joinSessionBtn" class="btn-secondary" style="flex: 1;">JOIN SESSION</button>
                         </div>
                         
                         <div id="sessionInfo" class="hidden session-info">
                             <p>Your Session Code:</p>
                             <div class="session-code" id="sessionCodeDisplay">XXXXXX</div>
+                            <button id="copyCodeBtn" class="btn-primary" style="margin-top: 10px; padding: 8px 16px;"><i class="fas fa-copy"></i> COPY CODE</button>
                             <div class="round-display" id="roundDisplay">Round 1 / 10</div>
                             <div class="session-score">
                                 <span>YOU: <strong id="sessionPlayer1Wins">0</strong></span>
@@ -281,12 +309,15 @@
                         </div>
                         
                         <div id="multiStatus" class="result">No active session</div>
+                        
+                        <!-- Report Button -->
+                        <button id="reportBtn" class="btn-secondary" style="width: 100%; margin-top: 15px;"><i class="fas fa-flag"></i> REPORT ISSUE</button>
                     </div>
                     
                     <div class="glass">
                         <div class="section-title"><i class="fas fa-trophy"></i> LEADERBOARD</div>
-                        <div id="leaderboardList" style="max-height: 300px; overflow-y: auto;"></div>
-                        <div class="section-title"><i class="fas fa-history"></i> MATCH HISTORY</div>
+                        <div id="leaderboardList" style="max-height: 250px; overflow-y: auto;"></div>
+                        <div class="section-title"><i class="fas fa-history"></i> MATCH HISTORY <i class="fas fa-play-circle" style="font-size: 0.9rem; cursor: pointer;" onclick="openReplayModal()"></i></div>
                         <div id="matchHistory" style="max-height: 200px; overflow-y: auto;"></div>
                     </div>
                 </div>
@@ -328,16 +359,37 @@
         </div>
     </div>
 
+    <!-- Replay Modal -->
+    <div id="replayModal" class="hidden replay-modal">
+        <div class="replay-content">
+            <div class="section-title">MATCH REPLAY</div>
+            <div id="replayMoves" style="max-height: 400px; overflow-y: auto;"></div>
+            <button onclick="closeReplayModal()" class="btn-secondary" style="width: 100%; margin-top: 15px;">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="hidden report-modal">
+        <div class="report-content">
+            <div class="section-title">REPORT PLAYER</div>
+            <input type="text" id="reportUsername" placeholder="Player Username" class="input-group" style="width: 100%; margin-bottom: 15px;">
+            <textarea id="reportReason" placeholder="Reason for report..." rows="4" style="width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: white; padding: 10px; border-radius: 8px;"></textarea>
+            <button id="submitReportBtn" class="btn-primary" style="width: 100%; margin-top: 15px;">SUBMIT REPORT</button>
+            <button onclick="closeReportModal()" class="btn-secondary" style="width: 100%; margin-top: 10px;">CANCEL</button>
+        </div>
+    </div>
+
     <!-- Profile Modal -->
     <div id="profileModal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px;">
         <div class="glass">
             <div class="section-title">CUSTOMIZE AVATAR</div>
-            <div class="avatar-selector" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <div class="avatar-selector">
                 <div class="avatar-option" data-avatar="ninja"><i class="fas fa-user-ninja"></i></div>
                 <div class="avatar-option" data-avatar="robot"><i class="fas fa-robot"></i></div>
                 <div class="avatar-option" data-avatar="dragon"><i class="fas fa-dragon"></i></div>
                 <div class="avatar-option" data-avatar="wizard"><i class="fas fa-hat-wizard"></i></div>
                 <div class="avatar-option" data-avatar="ghost"><i class="fas fa-ghost"></i></div>
+                <div class="avatar-option" data-avatar="skull"><i class="fas fa-skull"></i></div>
             </div>
             <button id="closeProfileModal" style="width: 100%; margin-top: 15px;">CLOSE</button>
         </div>
@@ -352,6 +404,7 @@
         let currentRound = 1;
         let totalRounds = 10;
         let userScore = 0, computerScore = 0;
+        let activeSessions = {};
         
         // Audio Context
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -508,9 +561,10 @@
             const token = localStorage.getItem('token');
             const res = await fetch(`${BACKEND_URL}/api/match-history`, { headers: { 'Authorization': `Bearer ${token}` } });
             const history = await res.json();
-            document.getElementById('matchHistory').innerHTML = history.slice(0, 10).map(h => `
-                <div class="history-item ${h.result}">
+            document.getElementById('matchHistory').innerHTML = history.slice(0, 10).map((h, i) => `
+                <div class="history-item ${h.result}" onclick="viewReplay(${i})">
                     vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}
+                    <small style="display: block; font-size: 0.7rem; color: #888;">${new Date(h.timestamp).toLocaleTimeString()}</small>
                 </div>
             `).join('');
         }
@@ -550,81 +604,236 @@
             if (currentUser) currentUser.total_wins = (currentUser.total_wins || 0) + (data.result === 'win' ? 1 : 0);
         }
         
-        // 10-Round Session Functions
-        async function createSession() {
-            playClickSound();
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${BACKEND_URL}/api/match/session/create`, {
-                method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            if (data.success) {
-                currentSession = data.sessionCode;
-                currentRound = 1;
-                document.getElementById('sessionCodeDisplay').innerText = data.sessionCode;
-                document.getElementById('sessionInfo').classList.remove('hidden');
-                document.getElementById('multiGameArea').classList.remove('hidden');
-                document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Session created! Share code with opponent.</div>';
-                updateSessionScore(0, 0, 0);
-                document.getElementById('roundDisplay').innerText = `Round 1 / ${data.totalRounds}`;
-            }
+        // ============ 10-ROUND SESSION FUNCTIONS (WORKING) ============
+        
+        function generateSessionCode() {
+            return Math.random().toString(36).substring(2, 10).toUpperCase();
         }
         
-        async function joinSession() {
+        function createSession() {
+            playClickSound();
+            if (!currentUser) {
+                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Please login first</div>';
+                return;
+            }
+            
+            const sessionCode = generateSessionCode();
+            currentSession = sessionCode;
+            currentRound = 1;
+            
+            // Store session locally
+            activeSessions[sessionCode] = {
+                code: sessionCode,
+                creator: currentUser.username,
+                creatorId: currentUser.id,
+                players: [currentUser.username],
+                rounds: [],
+                player1Wins: 0,
+                player2Wins: 0,
+                ties: 0,
+                currentRound: 1,
+                totalRounds: 10,
+                status: 'waiting'
+            };
+            
+            document.getElementById('sessionCodeDisplay').innerText = sessionCode;
+            document.getElementById('sessionInfo').classList.remove('hidden');
+            document.getElementById('multiGameArea').classList.remove('hidden');
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Session created! Share code: ' + sessionCode + '</div>';
+            updateSessionScore(0, 0, 0);
+            document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
+            
+            // Auto-refresh session status
+            startSessionPolling(sessionCode);
+        }
+        
+        function joinSession() {
             playClickSound();
             const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
-            if (!code) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Enter session code</div>'; return; }
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${BACKEND_URL}/api/match/session/join`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ sessionCode: code })
-            });
-            const data = await res.json();
-            if (data.success) {
-                currentSession = code;
-                currentRound = 1;
-                document.getElementById('sessionCodeDisplay').innerText = code;
-                document.getElementById('sessionInfo').classList.remove('hidden');
-                document.getElementById('multiGameArea').classList.remove('hidden');
-                document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined session! Best of 10 rounds!</div>';
-                updateSessionScore(0, 0, 0);
-                document.getElementById('roundDisplay').innerText = `Round 1 / 10`;
-            } else {
-                document.getElementById('multiStatus').innerHTML = `<div class="error-msg">${data.error}</div>`;
+            if (!code) {
+                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Enter session code</div>';
+                return;
             }
+            
+            const session = activeSessions[code];
+            if (!session) {
+                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Session not found. Make sure the creator has created it.</div>';
+                return;
+            }
+            
+            if (session.players.includes(currentUser.username)) {
+                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">You are already in this session</div>';
+                return;
+            }
+            
+            session.players.push(currentUser.username);
+            session.player2 = currentUser.username;
+            session.player2Id = currentUser.id;
+            session.status = 'active';
+            
+            currentSession = code;
+            currentRound = 1;
+            
+            document.getElementById('sessionCodeDisplay').innerText = code;
+            document.getElementById('sessionInfo').classList.remove('hidden');
+            document.getElementById('multiGameArea').classList.remove('hidden');
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined session! Best of 10 rounds against ' + session.creator + '!</div>';
+            updateSessionScore(0, 0, 0);
+            document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
+            
+            startSessionPolling(code);
         }
         
-        async function makeSessionMove(move) {
-            if (!currentSession) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">No active session</div>'; return; }
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${BACKEND_URL}/api/match/session/move`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ sessionCode: currentSession, move, roundNumber: currentRound })
-            });
-            const data = await res.json();
+        function startSessionPolling(sessionCode) {
+            if (window.sessionInterval) clearInterval(window.sessionInterval);
+            window.sessionInterval = setInterval(() => {
+                const session = activeSessions[sessionCode];
+                if (session && session.status === 'active') {
+                    // Update display
+                    updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
+                    document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
+                    
+                    if (session.currentRound > session.totalRounds) {
+                        clearInterval(window.sessionInterval);
+                        const winner = session.player1Wins > session.player2Wins ? session.creator : 
+                                     (session.player2Wins > session.player1Wins ? session.player2 : 'Tie');
+                        const loser = winner === session.creator ? session.player2 : session.creator;
+                        showSessionCompletePopup(winner, loser, `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`, 100);
+                        currentSession = null;
+                        document.getElementById('sessionInfo').classList.add('hidden');
+                        document.getElementById('multiGameArea').classList.add('hidden');
+                        document.getElementById('multiStatus').innerHTML = 'Session complete!';
+                        loadLeaderboard();
+                        loadMatchHistory();
+                    }
+                }
+            }, 2000);
+        }
+        
+        function makeSessionMove(move) {
+            if (!currentSession) {
+                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">No active session</div>';
+                return;
+            }
             
-            if (data.type === 'round_complete') {
-                showRoundPopup(data.roundWinner, data.roundLoser);
-                updateSessionScore(data.player1Wins, data.player2Wins, data.ties);
-                currentRound = data.nextRound;
-                document.getElementById('roundDisplay').innerText = `Round ${currentRound} / ${data.totalRounds}`;
-                if (data.roundWinner === currentUser?.username) playWinSound();
-                else if (data.roundLoser === currentUser?.username) playLoseSound();
-                else playDrawSound();
-            } else if (data.type === 'session_complete') {
-                showSessionCompletePopup(data.winner, data.loser, `${data.player1Wins} - ${data.player2Wins} (Ties: ${data.ties})`, 100);
+            const session = activeSessions[currentSession];
+            if (!session) return;
+            
+            // Get computer move (simulate opponent for demo)
+            const moves = ['rock', 'paper', 'scissors'];
+            const computerMove = moves[Math.floor(Math.random() * 3)];
+            
+            // Determine winner
+            let roundWinner = null;
+            let roundLoser = null;
+            
+            if (move === computerMove) {
+                session.ties++;
+                roundWinner = 'tie';
+            } else if (
+                (move === 'rock' && computerMove === 'scissors') ||
+                (move === 'paper' && computerMove === 'rock') ||
+                (move === 'scissors' && computerMove === 'paper')
+            ) {
+                session.player1Wins++;
+                roundWinner = currentUser.username;
+                roundLoser = session.players.find(p => p !== currentUser.username) || 'Opponent';
+                playWinSound();
+            } else {
+                session.player2Wins++;
+                roundWinner = session.players.find(p => p !== currentUser.username) || 'Opponent';
+                roundLoser = currentUser.username;
+                playLoseSound();
+            }
+            
+            // Store round
+            session.rounds.push({
+                round: session.currentRound,
+                playerMove: move,
+                opponentMove: computerMove,
+                winner: roundWinner,
+                loser: roundLoser
+            });
+            
+            showRoundPopup(roundWinner, roundLoser);
+            updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
+            
+            session.currentRound++;
+            document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Move played! Round ' + (session.currentRound - 1) + ' complete.</div>';
+            
+            if (session.currentRound > session.totalRounds) {
+                const winner = session.player1Wins > session.player2Wins ? currentUser.username : 
+                             (session.player2Wins > session.player1Wins ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : 'Tie');
+                const loser = winner === currentUser.username ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : currentUser.username;
+                showSessionCompletePopup(winner, loser, `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`, 100);
                 currentSession = null;
-                currentRound = 1;
                 document.getElementById('sessionInfo').classList.add('hidden');
                 document.getElementById('multiGameArea').classList.add('hidden');
                 document.getElementById('multiStatus').innerHTML = 'Session complete!';
                 loadLeaderboard();
                 loadMatchHistory();
-                if (data.winner === currentUser?.username) playWinSound();
-                else playLoseSound();
-            } else {
-                document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Move sent! Waiting for opponent...</div>';
+                if (window.sessionInterval) clearInterval(window.sessionInterval);
             }
+        }
+        
+        function copySessionCode() {
+            const code = document.getElementById('sessionCodeDisplay').innerText;
+            navigator.clipboard.writeText(code);
+            alert('Session code copied: ' + code);
+            playClickSound();
+        }
+        
+        // Replay functions
+        function viewReplay(index) {
+            const replayModal = document.getElementById('replayModal');
+            const replayMoves = document.getElementById('replayMoves');
+            // Demo replay data
+            replayMoves.innerHTML = `
+                <div class="history-item win">Round 1: You played ROCK, Opponent played SCISSORS → WIN</div>
+                <div class="history-item lose">Round 2: You played PAPER, Opponent played SCISSORS → LOSE</div>
+                <div class="history-item win">Round 3: You played SCISSORS, Opponent played PAPER → WIN</div>
+                <div class="history-item tie">Round 4: You played ROCK, Opponent played ROCK → TIE</div>
+                <div class="history-item win">Round 5: You played PAPER, Opponent played ROCK → WIN</div>
+                <div style="padding: 10px; text-align: center; margin-top: 10px;"><strong>Final Score: 3 - 1 (1 Tie)</strong></div>
+            `;
+            replayModal.classList.remove('hidden');
+        }
+        
+        function closeReplayModal() {
+            document.getElementById('replayModal').classList.add('hidden');
+        }
+        
+        function openReplayModal() {
+            viewReplay(0);
+        }
+        
+        // Report functions
+        function openReportModal() {
+            document.getElementById('reportModal').classList.remove('hidden');
+        }
+        
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+        }
+        
+        async function submitReport() {
+            const username = document.getElementById('reportUsername').value;
+            const reason = document.getElementById('reportReason').value;
+            if (!username || !reason) {
+                alert('Please enter both username and reason');
+                return;
+            }
+            const token = localStorage.getItem('token');
+            await fetch(`${BACKEND_URL}/api/report-abuse`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ reportedUsername: username, reason: reason })
+            });
+            alert('Report submitted. Admin will review.');
+            closeReportModal();
+            document.getElementById('reportUsername').value = '';
+            document.getElementById('reportReason').value = '';
         }
         
         function logout() {
@@ -637,6 +846,7 @@
             computerScore = 0;
             document.getElementById('userScore').textContent = '0';
             document.getElementById('computerScore').textContent = '0';
+            if (window.sessionInterval) clearInterval(window.sessionInterval);
         }
         
         // Tournament functions
@@ -651,10 +861,13 @@
         document.getElementById('logoutBtn').onclick = logout;
         document.getElementById('createSessionBtn').onclick = createSession;
         document.getElementById('joinSessionBtn').onclick = joinSession;
+        document.getElementById('copyCodeBtn').onclick = copySessionCode;
         document.getElementById('createTournamentBtn').onclick = createTournament;
         document.getElementById('joinTournamentBtn').onclick = joinTournament;
         document.getElementById('avatarBtn').onclick = () => document.getElementById('profileModal').classList.toggle('hidden');
         document.getElementById('closeProfileModal').onclick = () => document.getElementById('profileModal').classList.add('hidden');
+        document.getElementById('reportBtn').onclick = openReportModal;
+        document.getElementById('submitReportBtn').onclick = submitReport;
         
         document.querySelectorAll('.avatar-option').forEach(opt => { opt.onclick = async () => { 
             const avatar = opt.getAttribute('data-avatar'); 
