@@ -1,83 +1,209 @@
-// 10-Round Match Session
-let currentSession = null;
-let currentRound = 1;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Kirinyaga University RPS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a0c, #1a0033);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e0e0e0;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .glass {
+            background: rgba(10, 10, 20, 0.75);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,242,255,0.3);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px 25px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 60px;
+            border-left: 4px solid cyan;
+        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 15px; text-align: center; border-left: 3px solid cyan; }
+        .stat-card i { font-size: 2rem; color: cyan; }
+        .stat-card h3 { font-size: 2rem; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0,242,255,0.2); }
+        th { color: cyan; }
+        button, select, input {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid cyan;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: cyan; color: #000; }
+        .btn-danger { border-color: #ff4b2b; color: #ff4b2b; }
+        .btn-danger:hover { background: #ff4b2b; color: #fff; }
+        .btn-success { border-color: #00ff88; color: #00ff88; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+        .badge-Bronze { background: #cd7f32; }
+        .badge-Silver { background: #c0c0c0; color: #000; }
+        .badge-Gold { background: #ffd700; color: #000; }
+        .badge-Platinum { background: #00e5ff; color: #000; }
+        .badge-Diamond { background: #b9f2ff; color: #000; }
+        .badge-Master { background: #9b59b6; }
+        .badge-Legend { background: #ff4b2b; }
+        .login-container { max-width: 400px; margin: 100px auto; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: cyan; }
+        .input-group input { width: 100%; padding: 14px 15px 14px 45px; background: rgba(0,0,0,0.6); border: 1px solid cyan; border-radius: 12px; color: white; }
+        .hidden { display: none; }
+        .btn-primary { background: linear-gradient(135deg, cyan, #00aaff); color: #000; border: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loginSection" class="glass login-container">
+            <div style="text-align:center; margin-bottom:20px"><i class="fas fa-crown" style="font-size:3rem; color:cyan"></i><h1>ADMIN PANEL</h1></div>
+            <div id="loginMessage"></div>
+            <div class="input-group"><i class="fas fa-user"></i><input type="text" id="adminUsername" placeholder="USERNAME" value="admin"></div>
+            <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="adminPassword" placeholder="PASSWORD"></div>
+            <button id="loginBtn" class="btn-primary" style="width:100%">ADMIN LOGIN</button>
+            <button id="backToGameBtn" style="width:100%; margin-top:10px; background:transparent">BACK TO GAME</button>
+        </div>
 
-async function createMatchSession() {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${BACKEND_URL}/api/match/session/create`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (data.success) {
-        currentSession = data.sessionCode;
-        showNotification(`Session created! Code: ${data.sessionCode}`, 'success');
-        document.getElementById('sessionCodeDisplay').innerText = data.sessionCode;
-        document.getElementById('sessionInfo').classList.remove('hidden');
-    }
-}
+        <div id="dashboardSection" class="hidden">
+            <div class="header">
+                <div><i class="fas fa-crown"></i> <h1 style="display:inline-block">ADMIN CONTROL PANEL</h1></div>
+                <div><span id="adminName"></span> <button id="logoutBtn">LOGOUT</button></div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-users"></i><h3 id="onlineCount">0</h3><p>Online Users</p></div>
+                <div class="stat-card"><i class="fas fa-database"></i><h3 id="totalUsers">0</h3><p>Total Registered</p></div>
+                <div class="stat-card"><i class="fas fa-gamepad"></i><h3 id="activeGames">0</h3><p>Active Games</p></div>
+            </div>
+            <div class="glass">
+                <h3><i class="fas fa-users"></i> USER MANAGEMENT</h3>
+                <div style="overflow-x:auto"><table id="usersTable"><thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Badge</th><th>Wins</th><th>MMR</th><th>Coins</th><th>Status</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+            </div>
+            <div class="glass">
+                <h3><i class="fas fa-medal"></i> BADGE MANAGEMENT</h3>
+                <select id="badgeUserSelect"></select>
+                <select id="assignBadgeSelect">
+                    <option value="Bronze">Bronze</option><option value="Silver">Silver</option><option value="Gold">Gold</option>
+                    <option value="Platinum">Platinum</option><option value="Diamond">Diamond</option><option value="Master">Master</option><option value="Legend">Legend</option>
+                </select>
+                <button id="updateBadgeBtn">ASSIGN BADGE</button>
+            </div>
+        </div>
+    </div>
 
-async function joinMatchSession() {
-    const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${BACKEND_URL}/api/match/session/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ sessionCode: code })
-    });
-    const data = await res.json();
-    if (data.success) {
-        currentSession = code;
-        showNotification(`Joined session! Best of 10 rounds against ${data.opponent}`, 'success');
-        startSessionGame();
-    } else {
-        showNotification(data.error, 'error');
-    }
-}
-
-async function makeSessionMove(move) {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${BACKEND_URL}/api/match/session/move`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ sessionCode: currentSession, move, roundNumber: currentRound })
-    });
-    const data = await res.json();
-    
-    if (data.type === 'round_complete') {
-        showRoundResult(data.roundWinner, data.roundLoser);
-        updateScoreboard(data.player1Wins, data.player2Wins, data.ties);
-        currentRound = data.nextRound;
-        document.getElementById('roundDisplay').innerText = `Round ${currentRound}/${data.totalRounds}`;
-    } else if (data.type === 'session_complete') {
-        showSessionComplete(data.winner, data.loser, data.player1Wins, data.player2Wins, data.ties);
-        currentSession = null;
-        currentRound = 1;
-    }
-}
-
-function showRoundResult(winner, loser) {
-    const popup = document.getElementById('resultPopup');
-    const winnerSpan = document.getElementById('popupWinner');
-    const loserSpan = document.getElementById('popupLoser');
-    
-    winnerSpan.innerText = winner;
-    loserSpan.innerText = loser || 'None';
-    popup.classList.remove('hidden');
-    
-    setTimeout(() => {
-        popup.classList.add('hidden');
-    }, 3000);
-}
-
-function showSessionComplete(winner, loser, p1Wins, p2Wins, ties) {
-    const popup = document.getElementById('sessionCompletePopup');
-    document.getElementById('sessionWinner').innerText = winner;
-    document.getElementById('sessionLoser').innerText = loser || 'None';
-    document.getElementById('sessionScore').innerText = `${p1Wins} - ${p2Wins} (Ties: ${ties})`;
-    popup.classList.remove('hidden');
-    
-    setTimeout(() => {
-        popup.classList.add('hidden');
-    }, 5000);
-}
+    <script>
+        const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
+        let adminToken = null;
+        
+        async function adminLogin() {
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    adminToken = data.token;
+                    localStorage.setItem('adminToken', adminToken);
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('dashboardSection').classList.remove('hidden');
+                    document.getElementById('adminName').textContent = data.admin.username;
+                    loadDashboard();
+                } else {
+                    document.getElementById('loginMessage').innerHTML = `<div style="color:#ff4b2b">${data.error}</div>`;
+                }
+            } catch(error) {
+                document.getElementById('loginMessage').innerHTML = '<div style="color:#ff4b2b">Connection error</div>';
+            }
+        }
+        
+        async function loadDashboard() {
+            await loadUsers();
+            await loadStats();
+        }
+        
+        async function loadUsers() {
+            const res = await fetch(`${BACKEND_URL}/api/admin/users`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+            const users = await res.json();
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+            users.forEach(user => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${user.id}</td><td><i class="fas fa-user"></i> ${user.username}</td><td>${user.email}</td>
+                    <td><span class="badge badge-${user.badge}">${user.badge}</span></td>
+                    <td>${user.total_wins}</td><td>${user.mmr}</td><td>${user.coins}</td>
+                    <td class="${user.is_banned ? 'status-banned' : 'status-active'}">${user.is_banned ? 'BANNED' : 'ACTIVE'}</td>
+                    <td><button onclick="toggleBan(${user.id}, ${!user.is_banned})" class="${user.is_banned ? 'btn-success' : 'btn-danger'}">${user.is_banned ? 'UNBAN' : 'BAN'}</button></td>
+                `;
+            });
+            const select = document.getElementById('badgeUserSelect');
+            select.innerHTML = '<option value="">Select User</option>';
+            users.filter(u => u.role !== 'admin').forEach(u => { select.innerHTML += `<option value="${u.id}">${u.username} (${u.badge})</option>`; });
+        }
+        
+        async function loadStats() {
+            const online = await fetch(`${BACKEND_URL}/api/admin/online-count`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+            const onlineData = await online.json();
+            document.getElementById('onlineCount').textContent = onlineData.count;
+            const total = await fetch(`${BACKEND_URL}/api/admin/total-users`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+            const totalData = await total.json();
+            document.getElementById('totalUsers').textContent = totalData.count;
+            document.getElementById('activeGames').textContent = '0';
+        }
+        
+        window.toggleBan = async (userId, ban) => {
+            await fetch(`${BACKEND_URL}/api/admin/ban-user`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({ userId, ban })
+            });
+            loadUsers();
+        };
+        
+        async function updateBadge() {
+            const userId = document.getElementById('badgeUserSelect').value;
+            const badge = document.getElementById('assignBadgeSelect').value;
+            if (!userId) return;
+            await fetch(`${BACKEND_URL}/api/admin/update-badge`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({ userId, badge })
+            });
+            loadUsers();
+        }
+        
+        function logout() {
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+        }
+        
+        document.getElementById('loginBtn').onclick = adminLogin;
+        document.getElementById('logoutBtn').onclick = logout;
+        document.getElementById('backToGameBtn').onclick = () => window.location.href = '/';
+        document.getElementById('updateBadgeBtn').onclick = updateBadge;
+        
+        const savedToken = localStorage.getItem('adminToken');
+        if (savedToken) {
+            adminToken = savedToken;
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            loadDashboard();
+        }
+    </script>
+</body>
+</html>
