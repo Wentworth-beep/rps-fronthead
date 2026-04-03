@@ -409,6 +409,7 @@
             document.querySelectorAll('.buy-powerup').forEach((btn,i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${Object.values(powerUps)[i].name}!`); }; });
         }
         
+        
         // Achievements
         const achievements = [
             { id: 'first_blood', name: 'First Blood', description: 'Win your first match', icon: 'fa-trophy', unlocked: true },
@@ -438,7 +439,17 @@
             setTimeout(() => { copyBtn.innerHTML = originalText; }, 2000);
             playClickSound();
         }
-        
+        // In your frontend, after a win, show:
+ function showLevelProgress(winsNeeded) {
+    const progressBar = document.getElementById('levelProgress');
+    if (progressBar) {
+        const currentWins = user.total_wins;
+        const nextLevelWins = currentWins + winsNeeded;
+        const percent = (currentWins % (nextLevelWins - currentWins)) / (nextLevelWins - currentWins) * 100;
+        progressBar.style.width = `${percent}%`;
+        document.getElementById('winsNeededText').innerText = `${winsNeeded} more wins to reach Level ${user.level + 1}`;
+    }
+}
         // Computer thinking animation
         function showComputerThinking() {
             const thinkingArea = document.getElementById('computerThinkingArea');
