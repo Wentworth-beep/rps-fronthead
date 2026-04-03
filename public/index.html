@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RPS Cyber Arena | Kirinyaga University</title>
+    <title>RPS CYBER ARENA | Kirinyaga University</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
@@ -148,21 +148,47 @@
         .history-item.win { border-left: 3px solid #00ff88; background: rgba(0,255,136,0.05); }
         .history-item.lose { border-left: 3px solid #ff4b2b; background: rgba(255,75,43,0.05); }
         
-        .powerup-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .powerup-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
         .powerup-card { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid var(--primary); }
-        .powerup-card:hover { transform: scale(1.05); }
+        .powerup-card:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
         .powerup-card i { font-size: 2rem; color: var(--primary); }
         
-        .theme-selector { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .theme-option { width: 80px; height: 80px; border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 2px solid transparent; }
+        .theme-selector { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
+        .theme-option { width: 80px; height: 80px; border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 2px solid transparent; background: rgba(0,0,0,0.5); }
         .theme-option:hover { transform: scale(1.1); }
         .theme-option.selected { border-color: gold; }
         
-        .avatar-selector { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .avatar-selector { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
         .avatar-option { width: 60px; height: 60px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
         .avatar-option:hover { transform: scale(1.1); }
         .avatar-option.selected { border-color: gold; background: var(--primary); }
         .avatar-option.selected i { color: #000; }
+        
+        .tournament-bracket {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            overflow-x: auto;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .bracket-match {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 200px;
+            margin-bottom: 20px;
+        }
+        .bracket-player {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .bracket-player.winner {
+            background: rgba(0,255,255,0.3);
+            color: cyan;
+        }
         
         .replay-modal, .report-modal {
             position: fixed;
@@ -188,9 +214,28 @@
             background: rgba(0,0,0,0.5);
             border-radius: 10px;
             padding: 10px;
-            margin-top: 10px;
+            margin-top: 15px;
             text-align: center;
         }
+        
+        .tab-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        .tab {
+            padding: 8px 20px;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .tab:hover { background: rgba(0,255,255,0.2); }
+        .tab.active { background: var(--primary); color: #000; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body class="theme-cyberpunk">
@@ -244,16 +289,17 @@
                 <div id="winsNeededText" style="text-align: center; font-size: 0.8rem;"></div>
             </div>
 
-            <!-- Mode Selection -->
-            <div id="modeSelection" class="mode-selection">
-                <div class="mode-card" data-mode="computer"><i class="fas fa-microchip"></i><h3>VS COMPUTER</h3><p>Practice against AI</p></div>
-                <div class="mode-card" data-mode="multiplayer"><i class="fas fa-wifi"></i><h3>MULTIPLAYER</h3><p>10-Round Match Sessions</p></div>
-                <div class="mode-card" data-mode="tournament"><i class="fas fa-trophy"></i><h3>TOURNAMENT</h3><p>8-player bracket</p></div>
+            <!-- Mode Selection Tabs -->
+            <div class="tab-bar">
+                <div class="tab active" data-tab="computer">VS COMPUTER</div>
+                <div class="tab" data-tab="multiplayer">MULTIPLAYER (10 Rounds)</div>
+                <div class="tab" data-tab="tournament">TOURNAMENT</div>
+                <div class="tab" data-tab="powerups">POWER-UPS & THEMES</div>
+                <div class="tab" data-tab="profile">PROFILE</div>
             </div>
 
-            <!-- VS Computer Mode -->
-            <div id="computerMode" class="game-area">
-                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+            <!-- VS Computer Tab -->
+            <div id="computerTab" class="tab-content active">
                 <div class="game-grid">
                     <div class="glass">
                         <div class="section-title"><i class="fas fa-microchip"></i> VS COMPUTER</div>
@@ -269,29 +315,28 @@
                         <div class="scoreboard"><span>YOU: <span id="userScore">0</span></span><span>CPU: <span id="computerScore">0</span></span></div>
                     </div>
                     <div class="glass">
-                        <div class="section-title"><i class="fas fa-store"></i> POWER-UP SHOP</div>
-                        <div id="powerupShop" class="powerup-shop"></div>
-                        <div class="section-title"><i class="fas fa-palette"></i> THEMES</div>
-                        <div id="themeSelector" class="theme-selector"></div>
+                        <div class="section-title"><i class="fas fa-trophy"></i> LEADERBOARD</div>
+                        <div id="leaderboardList" style="max-height: 300px; overflow-y: auto;"></div>
+                        <div class="section-title"><i class="fas fa-history"></i> MATCH HISTORY</div>
+                        <div id="matchHistory" style="max-height: 200px; overflow-y: auto;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Multiplayer Mode - 10 Round Sessions -->
-            <div id="multiplayerMode" class="game-area">
-                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+            <!-- Multiplayer Tab -->
+            <div id="multiplayerTab" class="tab-content">
                 <div class="game-grid">
                     <div class="glass">
-                        <div class="section-title"><i class="fas fa-wifi"></i> 10-ROUND MATCH SESSIONS</div>
+                        <div class="section-title"><i class="fas fa-wifi"></i> 10-ROUND MULTIPLAYER</div>
                         
                         <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                            <button id="createSessionBtn" class="btn-primary" style="flex: 1;">CREATE 10-ROUND MATCH</button>
+                            <button id="createSessionBtn" class="btn-primary" style="flex: 1;">CREATE MATCH</button>
                             <input type="text" id="joinSessionCode" placeholder="SESSION CODE" style="flex: 1; text-transform: uppercase; text-align: center; font-size: 1.2rem; letter-spacing: 2px;">
-                            <button id="joinSessionBtn" class="btn-secondary" style="flex: 1;">JOIN SESSION</button>
+                            <button id="joinSessionBtn" class="btn-secondary" style="flex: 1;">JOIN MATCH</button>
                         </div>
                         
                         <div id="sessionInfo" class="hidden session-info">
-                            <p>Your Session Code:</p>
+                            <p>Your Match Code:</p>
                             <div class="session-code" id="sessionCodeDisplay">XXXXXX</div>
                             <button id="copyCodeBtn" class="btn-primary" style="margin-top: 10px; padding: 8px 16px;"><i class="fas fa-copy"></i> COPY CODE</button>
                             <div class="round-display" id="roundDisplay">Round 1 / 10</div>
@@ -310,35 +355,75 @@
                             </div>
                         </div>
                         
-                        <div id="multiStatus" class="result">No active session</div>
+                        <div id="multiStatus" class="result">No active match</div>
                         
-                        <!-- Report Ticket Button - Only shows after login -->
-                        <div id="reportTicketSection" class="report-ticket">
-                            <button id="reportBtn" class="btn-secondary" style="width: 100%;"><i class="fas fa-flag"></i> REPORT PLAYER / TICKET</button>
+                        <div class="report-ticket">
+                            <button id="reportBtn" class="btn-secondary" style="width: 100%;"><i class="fas fa-ticket-alt"></i> REPORT PLAYER / CREATE TICKET</button>
                             <small style="display: block; margin-top: 5px; font-size: 0.7rem;">Report inappropriate behavior</small>
                         </div>
                     </div>
                     
                     <div class="glass">
                         <div class="section-title"><i class="fas fa-trophy"></i> LEADERBOARD</div>
-                        <div id="leaderboardList" style="max-height: 250px; overflow-y: auto;"></div>
-                        <div class="section-title"><i class="fas fa-history"></i> MATCH HISTORY <i class="fas fa-play-circle" style="font-size: 0.9rem; cursor: pointer;" onclick="openReplayModal()"></i></div>
-                        <div id="matchHistory" style="max-height: 200px; overflow-y: auto;"></div>
+                        <div id="leaderboardList2" style="max-height: 300px; overflow-y: auto;"></div>
+                        <div class="section-title"><i class="fas fa-history"></i> MATCH HISTORY</div>
+                        <div id="matchHistory2" style="max-height: 200px; overflow-y: auto;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tournament Mode -->
-            <div id="tournamentMode" class="game-area">
-                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+            <!-- Tournament Tab -->
+            <div id="tournamentTab" class="tab-content">
                 <div class="glass">
-                    <div class="section-title"><i class="fas fa-trophy"></i> TOURNAMENT</div>
+                    <div class="section-title"><i class="fas fa-trophy"></i> 8-PLAYER TOURNAMENT</div>
                     <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                         <button id="createTournamentBtn" class="btn-primary">CREATE TOURNAMENT</button>
                         <input type="text" id="joinTournamentCode" placeholder="TOURNAMENT CODE" style="flex:1;">
-                        <button id="joinTournamentBtn" class="btn-secondary">JOIN</button>
+                        <button id="joinTournamentBtn" class="btn-secondary">JOIN TOURNAMENT</button>
                     </div>
                     <div id="tournamentStatus" class="result">No active tournament</div>
+                    <div id="tournamentBracket" class="tournament-bracket"></div>
+                </div>
+            </div>
+
+            <!-- Power-ups & Themes Tab -->
+            <div id="powerupsTab" class="tab-content">
+                <div class="game-grid">
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-store"></i> POWER-UP SHOP</div>
+                        <div id="powerupShop" class="powerup-shop"></div>
+                    </div>
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-palette"></i> THEMES</div>
+                        <div id="themeSelector" class="theme-selector"></div>
+                        <div class="section-title" style="margin-top: 20px;"><i class="fas fa-coins"></i> YOUR STATS</div>
+                        <div class="stats-dashboard" style="display: grid; grid-template-columns: repeat(2,1fr); gap: 15px;">
+                            <div class="stat-card" style="text-align:center;padding:15px;background:rgba(0,0,0,0.4);border-radius:15px;"><div class="stat-value" style="font-size:1.5rem;font-weight:bold;color:var(--primary);" id="statWins">0</div><div>Total Wins</div></div>
+                            <div class="stat-card" style="text-align:center;padding:15px;background:rgba(0,0,0,0.4);border-radius:15px;"><div class="stat-value" style="font-size:1.5rem;font-weight:bold;color:var(--primary);" id="statGames">0</div><div>Total Games</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="profileTab" class="tab-content">
+                <div class="glass">
+                    <div class="section-title"><i class="fas fa-user-circle"></i> CUSTOMIZE AVATAR</div>
+                    <div class="avatar-selector">
+                        <div class="avatar-option" data-avatar="ninja"><i class="fas fa-user-ninja"></i></div>
+                        <div class="avatar-option" data-avatar="robot"><i class="fas fa-robot"></i></div>
+                        <div class="avatar-option" data-avatar="dragon"><i class="fas fa-dragon"></i></div>
+                        <div class="avatar-option" data-avatar="wizard"><i class="fas fa-hat-wizard"></i></div>
+                        <div class="avatar-option" data-avatar="ghost"><i class="fas fa-ghost"></i></div>
+                        <div class="avatar-option" data-avatar="skull"><i class="fas fa-skull"></i></div>
+                        <div class="avatar-option" data-avatar="crown"><i class="fas fa-crown"></i></div>
+                    </div>
+                    <div class="section-title" style="margin-top: 20px;"><i class="fas fa-chart-simple"></i> PLAYER STATISTICS</div>
+                    <div class="stats-dashboard" style="display: grid; grid-template-columns: repeat(3,1fr); gap: 15px;">
+                        <div class="stat-card"><div class="stat-value" id="profileWins">0</div><div>Wins</div></div>
+                        <div class="stat-card"><div class="stat-value" id="profileGames">0</div><div>Games</div></div>
+                        <div class="stat-card"><div class="stat-value" id="profileWinRate">0%</div><div>Win Rate</div></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -376,7 +461,7 @@
     <!-- Report Modal (Ticket System) -->
     <div id="reportModal" class="hidden report-modal">
         <div class="report-content">
-            <div class="section-title"><i class="fas fa-ticket-alt"></i> SUBMIT REPORT TICKET</div>
+            <div class="section-title"><i class="fas fa-ticket-alt"></i> CREATE REPORT TICKET</div>
             <div class="input-group" style="margin-bottom: 15px;">
                 <i class="fas fa-user"></i>
                 <input type="text" id="reportUsername" placeholder="Player Username to Report" style="width: 100%; padding: 12px 15px 12px 40px;">
@@ -390,22 +475,6 @@
         </div>
     </div>
 
-    <!-- Profile Modal -->
-    <div id="profileModal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px;">
-        <div class="glass">
-            <div class="section-title">CUSTOMIZE AVATAR</div>
-            <div class="avatar-selector">
-                <div class="avatar-option" data-avatar="ninja"><i class="fas fa-user-ninja"></i></div>
-                <div class="avatar-option" data-avatar="robot"><i class="fas fa-robot"></i></div>
-                <div class="avatar-option" data-avatar="dragon"><i class="fas fa-dragon"></i></div>
-                <div class="avatar-option" data-avatar="wizard"><i class="fas fa-hat-wizard"></i></div>
-                <div class="avatar-option" data-avatar="ghost"><i class="fas fa-ghost"></i></div>
-                <div class="avatar-option" data-avatar="skull"><i class="fas fa-skull"></i></div>
-            </div>
-            <button id="closeProfileModal" style="width: 100%; margin-top: 15px;">CLOSE</button>
-        </div>
-    </div>
-
     <script>
         // ============ BACKEND URL ============
         const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
@@ -414,11 +483,12 @@
         let currentUser = null;
         let currentSession = null;
         let currentRound = 1;
-        let totalRounds = 10;
         let userScore = 0, computerScore = 0;
         let activeSessions = {};
         let sessionInterval = null;
         let matchHistory = [];
+        let tournaments = [];
+        let currentTournament = null;
         
         // ============ AUDIO FUNCTIONS ============
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -449,10 +519,10 @@
         
         // ============ POWER-UPS ============
         const powerUps = [
-            { id: 'double_points', name: 'Double Points', icon: 'fa-bolt', cost: 500 },
-            { id: 'shield', name: 'Shield', icon: 'fa-shield-alt', cost: 300 },
-            { id: 'prediction', name: 'Prediction', icon: 'fa-eye', cost: 400 },
-            { id: 'lucky_charm', name: 'Lucky Charm', icon: 'fa-clover', cost: 600 }
+            { id: 'double_points', name: 'Double Points', description: 'Win gives 2x coins', icon: 'fa-bolt', cost: 500 },
+            { id: 'shield', name: 'Shield', description: 'Loss doesn\'t reduce streak', icon: 'fa-shield-alt', cost: 300 },
+            { id: 'prediction', name: 'Prediction', description: 'See opponent\'s move', icon: 'fa-eye', cost: 400 },
+            { id: 'lucky_charm', name: 'Lucky Charm', description: 'Higher win chance', icon: 'fa-clover', cost: 600 }
         ];
         function loadPowerups() {
             const container = document.getElementById('powerupShop');
@@ -460,11 +530,12 @@
                 <div class="powerup-card" data-powerup="${p.id}">
                     <i class="fas ${p.icon}"></i>
                     <div><strong>${p.name}</strong></div>
-                    <div style="color:gold;">${p.cost} coins</div>
+                    <div style="font-size:0.8rem;">${p.description}</div>
+                    <div style="color:gold; margin:5px 0;">${p.cost} coins</div>
                     <button class="buy-powerup">BUY</button>
                 </div>
             `).join('');
-            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${powerUps[i].name}!`); }; });
+            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${powerUps[i].name}! Check your inventory.`); }; });
         }
         
         // ============ UI HELPERS ============
@@ -474,8 +545,16 @@
             else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
         }
         
-        function showModeSelection() { document.querySelectorAll('.game-area').forEach(area => area.classList.remove('active')); document.getElementById('modeSelection').style.display = 'flex'; }
-        function selectMode(mode) { document.getElementById('modeSelection').style.display = 'none'; document.getElementById(mode + 'Mode').classList.add('active'); }
+        function updateLevelProgress(wins) {
+            const level = Math.floor(wins / 5) + 1;
+            const nextLevelWins = level * 5;
+            const currentLevelWins = (level - 1) * 5;
+            const progress = ((wins - currentLevelWins) / 5) * 100;
+            document.getElementById('levelProgressBar').style.width = `${Math.min(progress, 100)}%`;
+            document.getElementById('currentLevel').innerText = level;
+            document.getElementById('nextLevel').innerText = level + 1;
+            document.getElementById('winsNeededText').innerText = `${nextLevelWins - wins} more wins to reach Level ${level + 1}`;
+        }
         
         function showRoundPopup(winner, loser) {
             document.getElementById('roundWinner').innerText = winner;
@@ -497,17 +576,6 @@
             document.getElementById('sessionPlayer1Wins').innerText = p1Wins;
             document.getElementById('sessionPlayer2Wins').innerText = p2Wins;
             document.getElementById('sessionTies').innerText = ties;
-        }
-        
-        function updateLevelProgress(wins) {
-            const level = Math.floor(wins / 5) + 1;
-            const nextLevelWins = level * 5;
-            const currentLevelWins = (level - 1) * 5;
-            const progress = ((wins - currentLevelWins) / 5) * 100;
-            document.getElementById('levelProgressBar').style.width = `${Math.min(progress, 100)}%`;
-            document.getElementById('currentLevel').innerText = level;
-            document.getElementById('nextLevel').innerText = level + 1;
-            document.getElementById('winsNeededText').innerText = `${nextLevelWins - wins} more wins to reach Level ${level + 1}`;
         }
         
         // ============ API CALLS ============
@@ -532,8 +600,7 @@
                     updateLevelProgress(currentUser.total_wins || 0);
                     loadLeaderboard();
                     loadMatchHistory();
-                    // Show report ticket section after login
-                    document.getElementById('reportTicketSection').classList.remove('hidden');
+                    loadProfileStats();
                 } else {
                     document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`;
                 }
@@ -568,7 +635,7 @@
             try {
                 const res = await fetch(`${BACKEND_URL}/api/leaderboard`);
                 const leaders = await res.json();
-                document.getElementById('leaderboardList').innerHTML = leaders.map(l => `
+                const html = leaders.map(l => `
                     <div class="leaderboard-item">
                         <div class="leaderboard-rank">#${l.rank}</div>
                         <div><i class="fas fa-user-${l.avatar || 'ninja'}"></i> ${l.username}</div>
@@ -576,6 +643,8 @@
                         <div>${l.mmr} MMR</div>
                     </div>
                 `).join('');
+                document.getElementById('leaderboardList').innerHTML = html;
+                document.getElementById('leaderboardList2').innerHTML = html;
             } catch(e) { console.log('Leaderboard error'); }
         }
         
@@ -585,13 +654,31 @@
             try {
                 const res = await fetch(`${BACKEND_URL}/api/match-history`, { headers: { 'Authorization': `Bearer ${token}` } });
                 matchHistory = await res.json();
-                document.getElementById('matchHistory').innerHTML = matchHistory.slice(0, 10).map((h, i) => `
+                const html = matchHistory.slice(0, 10).map((h, i) => `
                     <div class="history-item ${h.result}" onclick="viewReplay(${i})">
                         vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}
                         <small style="display: block; font-size: 0.7rem; color: #888;">${new Date(h.timestamp).toLocaleTimeString()}</small>
                     </div>
                 `).join('');
+                document.getElementById('matchHistory').innerHTML = html;
+                document.getElementById('matchHistory2').innerHTML = html;
             } catch(e) { console.log('History error'); }
+        }
+        
+        async function loadProfileStats() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/user/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const stats = await res.json();
+                document.getElementById('profileWins').innerText = stats.total_wins || 0;
+                document.getElementById('profileGames').innerText = stats.total_games || 0;
+                const winRate = stats.total_games > 0 ? Math.round((stats.total_wins / stats.total_games) * 100) : 0;
+                document.getElementById('profileWinRate').innerText = winRate + '%';
+                document.getElementById('statWins').innerText = stats.total_wins || 0;
+                document.getElementById('statGames').innerText = stats.total_games || 0;
+                document.getElementById('userCoins').innerText = stats.coins || 0;
+            } catch(e) { console.log('Profile stats error'); }
         }
         
         async function playVsComputer(move) {
@@ -626,68 +713,47 @@
                 document.getElementById('winStreak').textContent = data.win_streak || 0;
                 loadMatchHistory();
                 loadLeaderboard();
+                loadProfileStats();
                 if (currentUser) currentUser.total_wins = (currentUser.total_wins || 0) + (data.result === 'win' ? 1 : 0);
             } catch(e) { console.log('Game error'); }
         }
         
-        // ============ 10-ROUND SESSION FUNCTIONS ============
+        // ============ MULTIPLAYER FUNCTIONS ============
         function generateSessionCode() {
             return Math.random().toString(36).substring(2, 10).toUpperCase();
         }
         
         function createSession() {
             playClickSound();
-            if (!currentUser) {
-                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Please login first</div>';
-                return;
-            }
+            if (!currentUser) { alert('Please login first'); return; }
             
             const sessionCode = generateSessionCode();
             currentSession = sessionCode;
             currentRound = 1;
             
             activeSessions[sessionCode] = {
-                code: sessionCode,
-                creator: currentUser.username,
-                creatorId: currentUser.id,
-                players: [currentUser.username],
-                rounds: [],
-                player1Wins: 0,
-                player2Wins: 0,
-                ties: 0,
-                currentRound: 1,
-                totalRounds: 10,
-                status: 'waiting'
+                code: sessionCode, creator: currentUser.username, creatorId: currentUser.id,
+                players: [currentUser.username], rounds: [], player1Wins: 0, player2Wins: 0,
+                ties: 0, currentRound: 1, totalRounds: 10, status: 'waiting'
             };
             
             document.getElementById('sessionCodeDisplay').innerText = sessionCode;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
-            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Session created! Share code: ' + sessionCode + '</div>';
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Match created! Share code: ' + sessionCode + '</div>';
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
-            
             startSessionPolling(sessionCode);
         }
         
         function joinSession() {
             playClickSound();
             const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
-            if (!code) {
-                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Enter session code</div>';
-                return;
-            }
+            if (!code) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Enter session code</div>'; return; }
             
             const session = activeSessions[code];
-            if (!session) {
-                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Session not found. Create a new session first.</div>';
-                return;
-            }
-            
-            if (session.players.includes(currentUser.username)) {
-                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">You are already in this session</div>';
-                return;
-            }
+            if (!session) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Session not found</div>'; return; }
+            if (session.players.includes(currentUser.username)) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Already in session</div>'; return; }
             
             session.players.push(currentUser.username);
             session.player2 = currentUser.username;
@@ -700,10 +766,9 @@
             document.getElementById('sessionCodeDisplay').innerText = code;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
-            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined session! Best of 10 rounds against ' + session.creator + '!</div>';
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined match vs ' + session.creator + '!</div>';
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
-            
             startSessionPolling(code);
         }
         
@@ -717,14 +782,13 @@
                     
                     if (session.currentRound > session.totalRounds) {
                         clearInterval(sessionInterval);
-                        const winner = session.player1Wins > session.player2Wins ? session.creator : 
-                                     (session.player2Wins > session.player1Wins ? session.player2 : 'Tie');
+                        const winner = session.player1Wins > session.player2Wins ? session.creator : (session.player2Wins > session.player1Wins ? session.player2 : 'Tie');
                         const loser = winner === session.creator ? session.player2 : session.creator;
                         showSessionCompletePopup(winner, loser, `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`, 100);
                         currentSession = null;
                         document.getElementById('sessionInfo').classList.add('hidden');
                         document.getElementById('multiGameArea').classList.add('hidden');
-                        document.getElementById('multiStatus').innerHTML = 'Session complete!';
+                        document.getElementById('multiStatus').innerHTML = 'Match complete!';
                         loadLeaderboard();
                         loadMatchHistory();
                     }
@@ -734,64 +798,38 @@
         
         function makeSessionMove(move) {
             playClickSound();
-            if (!currentSession) {
-                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">No active session</div>';
-                return;
-            }
+            if (!currentSession) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">No active match</div>'; return; }
             
             const session = activeSessions[currentSession];
             if (!session) return;
             
             const moves = ['rock', 'paper', 'scissors'];
             const computerMove = moves[Math.floor(Math.random() * 3)];
-            
-            let roundWinner = null;
-            let roundLoser = null;
+            let roundWinner = null, roundLoser = null;
             
             if (move === computerMove) {
-                session.ties++;
-                roundWinner = 'tie';
-                playDrawSound();
-            } else if (
-                (move === 'rock' && computerMove === 'scissors') ||
-                (move === 'paper' && computerMove === 'rock') ||
-                (move === 'scissors' && computerMove === 'paper')
-            ) {
-                session.player1Wins++;
-                roundWinner = currentUser.username;
-                roundLoser = session.players.find(p => p !== currentUser.username) || 'Opponent';
-                playWinSound();
+                session.ties++; roundWinner = 'tie'; playDrawSound();
+            } else if ((move === 'rock' && computerMove === 'scissors') || (move === 'paper' && computerMove === 'rock') || (move === 'scissors' && computerMove === 'paper')) {
+                session.player1Wins++; roundWinner = currentUser.username; roundLoser = session.players.find(p => p !== currentUser.username) || 'Opponent'; playWinSound();
             } else {
-                session.player2Wins++;
-                roundWinner = session.players.find(p => p !== currentUser.username) || 'Opponent';
-                roundLoser = currentUser.username;
-                playLoseSound();
+                session.player2Wins++; roundWinner = session.players.find(p => p !== currentUser.username) || 'Opponent'; roundLoser = currentUser.username; playLoseSound();
             }
             
-            session.rounds.push({
-                round: session.currentRound,
-                playerMove: move,
-                opponentMove: computerMove,
-                winner: roundWinner,
-                loser: roundLoser
-            });
-            
+            session.rounds.push({ round: session.currentRound, playerMove: move, opponentMove: computerMove, winner: roundWinner, loser: roundLoser });
             showRoundPopup(roundWinner, roundLoser);
             updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
-            
             session.currentRound++;
             document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
-            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Move played! Round ' + (session.currentRound - 1) + ' complete.</div>';
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Round ' + (session.currentRound - 1) + ' complete!</div>';
             
             if (session.currentRound > session.totalRounds) {
-                const winner = session.player1Wins > session.player2Wins ? currentUser.username : 
-                             (session.player2Wins > session.player1Wins ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : 'Tie');
+                const winner = session.player1Wins > session.player2Wins ? currentUser.username : (session.player2Wins > session.player1Wins ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : 'Tie');
                 const loser = winner === currentUser.username ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : currentUser.username;
                 showSessionCompletePopup(winner, loser, `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`, 100);
                 currentSession = null;
                 document.getElementById('sessionInfo').classList.add('hidden');
                 document.getElementById('multiGameArea').classList.add('hidden');
-                document.getElementById('multiStatus').innerHTML = 'Session complete!';
+                document.getElementById('multiStatus').innerHTML = 'Match complete!';
                 loadLeaderboard();
                 loadMatchHistory();
                 if (sessionInterval) clearInterval(sessionInterval);
@@ -801,8 +839,65 @@
         function copySessionCode() {
             const code = document.getElementById('sessionCodeDisplay').innerText;
             navigator.clipboard.writeText(code);
-            alert('Session code copied: ' + code);
+            alert('Match code copied: ' + code);
             playClickSound();
+        }
+        
+        // ============ TOURNAMENT FUNCTIONS ============
+        let tournamentPlayers = [];
+        function createTournament() {
+            playClickSound();
+            if (!currentUser) { alert('Please login first'); return; }
+            const tournamentCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            tournaments.push({ code: tournamentCode, host: currentUser.username, players: [currentUser.username], status: 'waiting' });
+            currentTournament = tournamentCode;
+            document.getElementById('tournamentStatus').innerHTML = `<div class="success-msg">Tournament created! Code: ${tournamentCode}. Share with friends!</div>`;
+            updateTournamentBracket();
+        }
+        
+        function joinTournament() {
+            playClickSound();
+            const code = document.getElementById('joinTournamentCode').value.trim().toUpperCase();
+            if (!code) { document.getElementById('tournamentStatus').innerHTML = '<div class="error-msg">Enter tournament code</div>'; return; }
+            const tournament = tournaments.find(t => t.code === code);
+            if (!tournament) { document.getElementById('tournamentStatus').innerHTML = '<div class="error-msg">Tournament not found</div>'; return; }
+            if (tournament.players.includes(currentUser.username)) { document.getElementById('tournamentStatus').innerHTML = '<div class="error-msg">Already joined</div>'; return; }
+            tournament.players.push(currentUser.username);
+            document.getElementById('tournamentStatus').innerHTML = `<div class="success-msg">Joined tournament! ${tournament.players.length}/8 players</div>`;
+            if (tournament.players.length === 8) {
+                tournament.status = 'active';
+                document.getElementById('tournamentStatus').innerHTML = '<div class="success-msg">Tournament full! Starting bracket...</div>';
+            }
+            updateTournamentBracket();
+        }
+        
+        function updateTournamentBracket() {
+            const bracketDiv = document.getElementById('tournamentBracket');
+            if (currentTournament) {
+                const tournament = tournaments.find(t => t.code === currentTournament);
+                if (tournament) {
+                    bracketDiv.innerHTML = `
+                        <div class="bracket-match">
+                            <div class="bracket-player ${tournament.players[0] ? 'winner' : ''}">${tournament.players[0] || 'Waiting...'}</div>
+                            <div class="bracket-player ${tournament.players[1] ? 'winner' : ''}">${tournament.players[1] || 'Waiting...'}</div>
+                        </div>
+                        <div class="bracket-match">
+                            <div class="bracket-player ${tournament.players[2] ? 'winner' : ''}">${tournament.players[2] || 'Waiting...'}</div>
+                            <div class="bracket-player ${tournament.players[3] ? 'winner' : ''}">${tournament.players[3] || 'Waiting...'}</div>
+                        </div>
+                        <div class="bracket-match">
+                            <div class="bracket-player ${tournament.players[4] ? 'winner' : ''}">${tournament.players[4] || 'Waiting...'}</div>
+                            <div class="bracket-player ${tournament.players[5] ? 'winner' : ''}">${tournament.players[5] || 'Waiting...'}</div>
+                        </div>
+                        <div class="bracket-match">
+                            <div class="bracket-player ${tournament.players[6] ? 'winner' : ''}">${tournament.players[6] || 'Waiting...'}</div>
+                            <div class="bracket-player ${tournament.players[7] ? 'winner' : ''}">${tournament.players[7] || 'Waiting...'}</div>
+                        </div>
+                    `;
+                }
+            } else {
+                bracketDiv.innerHTML = '<div style="text-align:center; padding:20px;">Create or join a tournament to see bracket</div>';
+            }
         }
         
         // ============ REPLAY FUNCTIONS ============
@@ -814,55 +909,41 @@
                 <div class="history-item lose">Round 2: You played PAPER, Opponent played SCISSORS → LOSE</div>
                 <div class="history-item win">Round 3: You played SCISSORS, Opponent played PAPER → WIN</div>
                 <div class="history-item tie">Round 4: You played ROCK, Opponent played ROCK → TIE</div>
-                <div class="history-item win">Round 5: You played PAPER, Opponent played ROCK → WIN</div>
-                <div style="padding: 10px; text-align: center; margin-top: 10px;"><strong>Final Score: 3 - 1 (1 Tie)</strong></div>
+                <div style="padding: 10px; text-align: center; margin-top: 10px;"><strong>Replay available for premium users</strong></div>
             `;
             replayModal.classList.remove('hidden');
         }
         
-        function closeReplayModal() {
-            document.getElementById('replayModal').classList.add('hidden');
-        }
+        function closeReplayModal() { document.getElementById('replayModal').classList.add('hidden'); }
         
-        function openReplayModal() {
-            viewReplay(0);
-        }
-        
-        // ============ REPORT FUNCTIONS (TICKET SYSTEM) ============
-        function openReportModal() {
-            document.getElementById('reportModal').classList.remove('hidden');
-        }
-        
-        function closeReportModal() {
-            document.getElementById('reportModal').classList.add('hidden');
-        }
+        // ============ REPORT FUNCTIONS ============
+        function openReportModal() { document.getElementById('reportModal').classList.remove('hidden'); }
+        function closeReportModal() { document.getElementById('reportModal').classList.add('hidden'); }
         
         async function submitReport() {
             const username = document.getElementById('reportUsername').value;
             const reason = document.getElementById('reportReason').value;
-            if (!username || !reason) {
-                alert('Please enter both player username and reason for report');
-                return;
-            }
+            if (!username || !reason) { alert('Please enter both player username and reason'); return; }
             const token = localStorage.getItem('token');
             try {
                 await fetch(`${BACKEND_URL}/api/report-abuse`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ reportedUsername: username, reason: reason })
                 });
-                alert('Report ticket submitted successfully. Admin will review.');
+                alert('Report ticket submitted. Admin will review.');
                 closeReportModal();
                 document.getElementById('reportUsername').value = '';
                 document.getElementById('reportReason').value = '';
-            } catch(e) {
-                alert('Failed to submit report. Please try again.');
-            }
+            } catch(e) { alert('Failed to submit report'); }
         }
         
-        // ============ TOURNAMENT FUNCTIONS ============
-        function createTournament() { playClickSound(); alert('Tournament feature coming soon!'); }
-        function joinTournament() { playClickSound(); const code = document.getElementById('joinTournamentCode').value; if(code) document.getElementById('tournamentStatus').innerHTML = `Joined tournament ${code}!`; }
+        // ============ TAB NAVIGATION ============
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
         
         // ============ LOGOUT ============
         function logout() {
@@ -870,12 +951,21 @@
             currentUser = null;
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('gameApp').classList.add('hidden');
-            document.getElementById('modeSelection').style.display = 'flex';
-            userScore = 0;
-            computerScore = 0;
+            userScore = 0; computerScore = 0;
             document.getElementById('userScore').textContent = '0';
             document.getElementById('computerScore').textContent = '0';
             if (sessionInterval) clearInterval(sessionInterval);
+        }
+        
+        // ============ AVATAR UPDATE ============
+        async function updateAvatar(avatar) {
+            const token = localStorage.getItem('token');
+            await fetch(`${BACKEND_URL}/api/update-avatar`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ avatar })
+            });
+            document.getElementById('avatarIcon').className = `fas fa-user-${avatar}`;
+            playClickSound();
         }
         
         // ============ EVENT LISTENERS ============
@@ -889,30 +979,18 @@
         document.getElementById('copyCodeBtn').onclick = copySessionCode;
         document.getElementById('createTournamentBtn').onclick = createTournament;
         document.getElementById('joinTournamentBtn').onclick = joinTournament;
-        document.getElementById('avatarBtn').onclick = () => document.getElementById('profileModal').classList.toggle('hidden');
-        document.getElementById('closeProfileModal').onclick = () => document.getElementById('profileModal').classList.add('hidden');
         document.getElementById('reportBtn').onclick = openReportModal;
         document.getElementById('submitReportBtn').onclick = submitReport;
+        document.getElementById('avatarBtn').onclick = () => document.getElementById('profileTab').classList.add('active');
         
-        document.querySelectorAll('.avatar-option').forEach(opt => { opt.onclick = async () => { 
-            const avatar = opt.getAttribute('data-avatar'); 
-            const token = localStorage.getItem('token');
-            await fetch(`${BACKEND_URL}/api/update-avatar`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ avatar }) });
-            document.getElementById('avatarIcon').className = `fas fa-user-${avatar}`;
-            document.getElementById('profileModal').classList.add('hidden');
-            playClickSound();
-        }; });
-        
+        document.querySelectorAll('.avatar-option').forEach(opt => { opt.onclick = () => updateAvatar(opt.getAttribute('data-avatar')); });
         document.querySelectorAll('[data-move]').forEach(btn => { btn.onclick = () => playVsComputer(btn.getAttribute('data-move')); });
         document.querySelectorAll('[data-session-move]').forEach(btn => { btn.onclick = () => makeSessionMove(btn.getAttribute('data-session-move')); });
-        document.querySelectorAll('.mode-card').forEach(card => { card.onclick = () => selectMode(card.getAttribute('data-mode')); });
+        document.querySelectorAll('.tab').forEach(tab => { tab.onclick = () => switchTab(tab.getAttribute('data-tab')); });
         
         // ============ INITIALIZATION ============
         loadThemes();
         loadPowerups();
-        
-        // Initially hide report ticket section until login
-        document.getElementById('reportTicketSection').classList.add('hidden');
         
         const token = localStorage.getItem('token');
         if (token) {
@@ -920,9 +998,9 @@
                 if (data.valid) {
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('gameApp').classList.remove('hidden');
-                    document.getElementById('reportTicketSection').classList.remove('hidden');
                     loadLeaderboard();
                     loadMatchHistory();
+                    loadProfileStats();
                 }
             });
         }
