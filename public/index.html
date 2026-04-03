@@ -224,6 +224,7 @@
             margin-bottom: 20px;
             border-bottom: 1px solid var(--primary);
             padding-bottom: 10px;
+            flex-wrap: wrap;
         }
         .tab {
             padding: 8px 20px;
@@ -357,7 +358,8 @@
                         
                         <div id="multiStatus" class="result">No active match</div>
                         
-                        <div class="report-ticket">
+                        <!-- Report Ticket - Hidden until login -->
+                        <div id="reportTicketSection" class="report-ticket hidden">
                             <button id="reportBtn" class="btn-secondary" style="width: 100%;"><i class="fas fa-ticket-alt"></i> REPORT PLAYER / CREATE TICKET</button>
                             <small style="display: block; margin-top: 5px; font-size: 0.7rem;">Report inappropriate behavior</small>
                         </div>
@@ -535,7 +537,7 @@
                     <button class="buy-powerup">BUY</button>
                 </div>
             `).join('');
-            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${powerUps[i].name}! Check your inventory.`); }; });
+            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${powerUps[i].name}!`); }; });
         }
         
         // ============ UI HELPERS ============
@@ -601,6 +603,8 @@
                     loadLeaderboard();
                     loadMatchHistory();
                     loadProfileStats();
+                    // Show report ticket section after login
+                    document.getElementById('reportTicketSection').classList.remove('hidden');
                 } else {
                     document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`;
                 }
@@ -844,7 +848,6 @@
         }
         
         // ============ TOURNAMENT FUNCTIONS ============
-        let tournamentPlayers = [];
         function createTournament() {
             playClickSound();
             if (!currentUser) { alert('Please login first'); return; }
@@ -909,7 +912,7 @@
                 <div class="history-item lose">Round 2: You played PAPER, Opponent played SCISSORS → LOSE</div>
                 <div class="history-item win">Round 3: You played SCISSORS, Opponent played PAPER → WIN</div>
                 <div class="history-item tie">Round 4: You played ROCK, Opponent played ROCK → TIE</div>
-                <div style="padding: 10px; text-align: center; margin-top: 10px;"><strong>Replay available for premium users</strong></div>
+                <div style="padding: 10px; text-align: center; margin-top: 10px;"><strong>Replay available</strong></div>
             `;
             replayModal.classList.remove('hidden');
         }
@@ -955,6 +958,8 @@
             document.getElementById('userScore').textContent = '0';
             document.getElementById('computerScore').textContent = '0';
             if (sessionInterval) clearInterval(sessionInterval);
+            // Hide report ticket section on logout
+            document.getElementById('reportTicketSection').classList.add('hidden');
         }
         
         // ============ AVATAR UPDATE ============
@@ -981,7 +986,12 @@
         document.getElementById('joinTournamentBtn').onclick = joinTournament;
         document.getElementById('reportBtn').onclick = openReportModal;
         document.getElementById('submitReportBtn').onclick = submitReport;
-        document.getElementById('avatarBtn').onclick = () => document.getElementById('profileTab').classList.add('active');
+        document.getElementById('avatarBtn').onclick = () => {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.getElementById('profileTab').classList.add('active');
+            document.querySelector('.tab[data-tab="profile"]').classList.add('active');
+        };
         
         document.querySelectorAll('.avatar-option').forEach(opt => { opt.onclick = () => updateAvatar(opt.getAttribute('data-avatar')); });
         document.querySelectorAll('[data-move]').forEach(btn => { btn.onclick = () => playVsComputer(btn.getAttribute('data-move')); });
@@ -992,12 +1002,16 @@
         loadThemes();
         loadPowerups();
         
+        // Report ticket starts hidden
+        document.getElementById('reportTicketSection').classList.add('hidden');
+        
         const token = localStorage.getItem('token');
         if (token) {
             fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(data => {
                 if (data.valid) {
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('gameApp').classList.remove('hidden');
+                    document.getElementById('reportTicketSection').classList.remove('hidden');
                     loadLeaderboard();
                     loadMatchHistory();
                     loadProfileStats();
