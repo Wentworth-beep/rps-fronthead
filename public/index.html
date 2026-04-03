@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -62,7 +61,6 @@
         .game-area.active { display: block; }
         .back-btn { background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 10px; cursor: pointer; margin-bottom: 20px; }
         
-        /* Popup Styles */
         .popup {
             position: fixed;
             top: 0;
@@ -91,7 +89,6 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
-        /* Session Info */
         .session-info {
             background: rgba(0,0,0,0.5);
             border-radius: 15px;
@@ -116,7 +113,6 @@
             border-radius: 10px;
         }
         
-        /* Level Progress */
         .level-progress {
             background: rgba(0,0,0,0.5);
             border-radius: 10px;
@@ -131,7 +127,6 @@
             transition: width 0.5s;
         }
         
-        /* Login */
         .login-container { max-width: 500px; margin: 80px auto; }
         .input-group { position: relative; margin-bottom: 20px; }
         .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
@@ -310,7 +305,6 @@
                         
                         <div id="multiStatus" class="result">No active session</div>
                         
-                        <!-- Report Button -->
                         <button id="reportBtn" class="btn-secondary" style="width: 100%; margin-top: 15px;"><i class="fas fa-flag"></i> REPORT ISSUE</button>
                     </div>
                     
@@ -372,7 +366,7 @@
     <div id="reportModal" class="hidden report-modal">
         <div class="report-content">
             <div class="section-title">REPORT PLAYER</div>
-            <input type="text" id="reportUsername" placeholder="Player Username" class="input-group" style="width: 100%; margin-bottom: 15px;">
+            <input type="text" id="reportUsername" placeholder="Player Username" style="width: 100%; margin-bottom: 15px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: white; padding: 10px; border-radius: 8px;">
             <textarea id="reportReason" placeholder="Reason for report..." rows="4" style="width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: white; padding: 10px; border-radius: 8px;"></textarea>
             <button id="submitReportBtn" class="btn-primary" style="width: 100%; margin-top: 15px;">SUBMIT REPORT</button>
             <button onclick="closeReportModal()" class="btn-secondary" style="width: 100%; margin-top: 10px;">CANCEL</button>
@@ -396,17 +390,20 @@
     </div>
 
     <script>
-        // ============ CONFIGURATION ============
+        // ============ BACKEND URL ============
         const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
         
+        // ============ GLOBAL VARIABLES ============
         let currentUser = null;
         let currentSession = null;
         let currentRound = 1;
         let totalRounds = 10;
         let userScore = 0, computerScore = 0;
         let activeSessions = {};
+        let sessionInterval = null;
+        let matchHistory = [];
         
-        // Audio Context
+        // ============ AUDIO FUNCTIONS ============
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep(frequency, duration, volume) {
             const oscillator = audioContext.createOscillator();
@@ -423,7 +420,7 @@
         function playDrawSound() { playBeep(587.33,200,0.2); setTimeout(()=>playBeep(587.33,200,0.2),250); }
         function playClickSound() { playBeep(800,50,0.1); }
         
-        // Themes
+        // ============ THEMES ============
         const themes = { cyberpunk:'Cyberpunk', fire:'Fire', ice:'Ice', nature:'Nature', space:'Space', gold:'Gold' };
         function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); }
         function loadThemes() {
@@ -433,7 +430,7 @@
             document.querySelectorAll('.theme-option').forEach(opt => { opt.onclick = () => { applyTheme(opt.getAttribute('data-theme')); playClickSound(); }; });
         }
         
-        // Power-ups
+        // ============ POWER-UPS ============
         const powerUps = [
             { id: 'double_points', name: 'Double Points', icon: 'fa-bolt', cost: 500 },
             { id: 'shield', name: 'Shield', icon: 'fa-shield-alt', cost: 300 },
@@ -453,6 +450,7 @@
             document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${powerUps[i].name}!`); }; });
         }
         
+        // ============ UI HELPERS ============
         function togglePassword(inputId, icon) {
             const input = document.getElementById(inputId);
             if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
@@ -495,7 +493,9 @@
             document.getElementById('winsNeededText').innerText = `${nextLevelWins - wins} more wins to reach Level ${level + 1}`;
         }
         
+        // ============ API CALLS ============
         async function login(username, password) {
+            playClickSound();
             try {
                 const res = await fetch(`${BACKEND_URL}/api/login`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -524,6 +524,7 @@
         }
         
         async function register(username, email, password, confirmPassword) {
+            playClickSound();
             if (!username || !email || !password) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Please fill all fields</div>'; return; }
             if (password !== confirmPassword) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Passwords do not match</div>'; return; }
             try {
@@ -545,67 +546,72 @@
         }
         
         async function loadLeaderboard() {
-            const res = await fetch(`${BACKEND_URL}/api/leaderboard`);
-            const leaders = await res.json();
-            document.getElementById('leaderboardList').innerHTML = leaders.map(l => `
-                <div class="leaderboard-item">
-                    <div class="leaderboard-rank">#${l.rank}</div>
-                    <div><i class="fas fa-user-${l.avatar || 'ninja'}"></i> ${l.username}</div>
-                    <div>${l.wins} wins</div>
-                    <div>${l.mmr} MMR</div>
-                </div>
-            `).join('');
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/leaderboard`);
+                const leaders = await res.json();
+                document.getElementById('leaderboardList').innerHTML = leaders.map(l => `
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-rank">#${l.rank}</div>
+                        <div><i class="fas fa-user-${l.avatar || 'ninja'}"></i> ${l.username}</div>
+                        <div>${l.wins} wins</div>
+                        <div>${l.mmr} MMR</div>
+                    </div>
+                `).join('');
+            } catch(e) { console.log('Leaderboard error'); }
         }
         
         async function loadMatchHistory() {
             const token = localStorage.getItem('token');
-            const res = await fetch(`${BACKEND_URL}/api/match-history`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const history = await res.json();
-            document.getElementById('matchHistory').innerHTML = history.slice(0, 10).map((h, i) => `
-                <div class="history-item ${h.result}" onclick="viewReplay(${i})">
-                    vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}
-                    <small style="display: block; font-size: 0.7rem; color: #888;">${new Date(h.timestamp).toLocaleTimeString()}</small>
-                </div>
-            `).join('');
+            if (!token) return;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/match-history`, { headers: { 'Authorization': `Bearer ${token}` } });
+                matchHistory = await res.json();
+                document.getElementById('matchHistory').innerHTML = matchHistory.slice(0, 10).map((h, i) => `
+                    <div class="history-item ${h.result}" onclick="viewReplay(${i})">
+                        vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}
+                        <small style="display: block; font-size: 0.7rem; color: #888;">${new Date(h.timestamp).toLocaleTimeString()}</small>
+                    </div>
+                `).join('');
+            } catch(e) { console.log('History error'); }
         }
         
         async function playVsComputer(move) {
             const token = localStorage.getItem('token');
             const difficulty = document.getElementById('difficultySelect').value;
-            const res = await fetch(`${BACKEND_URL}/api/game/computer`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ playerMove: move, difficulty })
-            });
-            const data = await res.json();
-            
-            let resultText = `You: ${data.playerMove} | CPU: ${data.computerMove} → `;
-            if (data.result === 'win') {
-                resultText += 'VICTORY!';
-                userScore++;
-                playWinSound();
-                if (data.level_up) showRoundPopup('You', 'Computer');
-                updateLevelProgress((currentUser?.total_wins || 0) + 1);
-            } else if (data.result === 'lose') {
-                resultText += 'DEFEAT!';
-                computerScore++;
-                playLoseSound();
-            } else {
-                resultText += 'DRAW!';
-                playDrawSound();
-            }
-            
-            document.getElementById('computerResult').innerHTML = resultText;
-            document.getElementById('userScore').textContent = userScore;
-            document.getElementById('computerScore').textContent = computerScore;
-            document.getElementById('userCoins').textContent = data.total_coins;
-            document.getElementById('winStreak').textContent = data.win_streak || 0;
-            loadMatchHistory();
-            loadLeaderboard();
-            if (currentUser) currentUser.total_wins = (currentUser.total_wins || 0) + (data.result === 'win' ? 1 : 0);
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/game/computer`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ playerMove: move, difficulty })
+                });
+                const data = await res.json();
+                
+                let resultText = `You: ${data.playerMove} | CPU: ${data.computerMove} → `;
+                if (data.result === 'win') {
+                    resultText += 'VICTORY!';
+                    userScore++;
+                    playWinSound();
+                    updateLevelProgress((currentUser?.total_wins || 0) + 1);
+                } else if (data.result === 'lose') {
+                    resultText += 'DEFEAT!';
+                    computerScore++;
+                    playLoseSound();
+                } else {
+                    resultText += 'DRAW!';
+                    playDrawSound();
+                }
+                
+                document.getElementById('computerResult').innerHTML = resultText;
+                document.getElementById('userScore').textContent = userScore;
+                document.getElementById('computerScore').textContent = computerScore;
+                document.getElementById('userCoins').textContent = data.total_coins;
+                document.getElementById('winStreak').textContent = data.win_streak || 0;
+                loadMatchHistory();
+                loadLeaderboard();
+                if (currentUser) currentUser.total_wins = (currentUser.total_wins || 0) + (data.result === 'win' ? 1 : 0);
+            } catch(e) { console.log('Game error'); }
         }
         
-        // ============ 10-ROUND SESSION FUNCTIONS (WORKING) ============
-        
+        // ============ 10-ROUND SESSION FUNCTIONS ============
         function generateSessionCode() {
             return Math.random().toString(36).substring(2, 10).toUpperCase();
         }
@@ -621,7 +627,6 @@
             currentSession = sessionCode;
             currentRound = 1;
             
-            // Store session locally
             activeSessions[sessionCode] = {
                 code: sessionCode,
                 creator: currentUser.username,
@@ -643,7 +648,6 @@
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
             
-            // Auto-refresh session status
             startSessionPolling(sessionCode);
         }
         
@@ -657,7 +661,7 @@
             
             const session = activeSessions[code];
             if (!session) {
-                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Session not found. Make sure the creator has created it.</div>';
+                document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Session not found. Create a new session first.</div>';
                 return;
             }
             
@@ -685,16 +689,15 @@
         }
         
         function startSessionPolling(sessionCode) {
-            if (window.sessionInterval) clearInterval(window.sessionInterval);
-            window.sessionInterval = setInterval(() => {
+            if (sessionInterval) clearInterval(sessionInterval);
+            sessionInterval = setInterval(() => {
                 const session = activeSessions[sessionCode];
                 if (session && session.status === 'active') {
-                    // Update display
                     updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
                     document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
                     
                     if (session.currentRound > session.totalRounds) {
-                        clearInterval(window.sessionInterval);
+                        clearInterval(sessionInterval);
                         const winner = session.player1Wins > session.player2Wins ? session.creator : 
                                      (session.player2Wins > session.player1Wins ? session.player2 : 'Tie');
                         const loser = winner === session.creator ? session.player2 : session.creator;
@@ -711,6 +714,7 @@
         }
         
         function makeSessionMove(move) {
+            playClickSound();
             if (!currentSession) {
                 document.getElementById('multiStatus').innerHTML = '<div class="error-msg">No active session</div>';
                 return;
@@ -719,17 +723,16 @@
             const session = activeSessions[currentSession];
             if (!session) return;
             
-            // Get computer move (simulate opponent for demo)
             const moves = ['rock', 'paper', 'scissors'];
             const computerMove = moves[Math.floor(Math.random() * 3)];
             
-            // Determine winner
             let roundWinner = null;
             let roundLoser = null;
             
             if (move === computerMove) {
                 session.ties++;
                 roundWinner = 'tie';
+                playDrawSound();
             } else if (
                 (move === 'rock' && computerMove === 'scissors') ||
                 (move === 'paper' && computerMove === 'rock') ||
@@ -746,7 +749,6 @@
                 playLoseSound();
             }
             
-            // Store round
             session.rounds.push({
                 round: session.currentRound,
                 playerMove: move,
@@ -773,7 +775,7 @@
                 document.getElementById('multiStatus').innerHTML = 'Session complete!';
                 loadLeaderboard();
                 loadMatchHistory();
-                if (window.sessionInterval) clearInterval(window.sessionInterval);
+                if (sessionInterval) clearInterval(sessionInterval);
             }
         }
         
@@ -784,11 +786,10 @@
             playClickSound();
         }
         
-        // Replay functions
+        // ============ REPLAY FUNCTIONS ============
         function viewReplay(index) {
             const replayModal = document.getElementById('replayModal');
             const replayMoves = document.getElementById('replayMoves');
-            // Demo replay data
             replayMoves.innerHTML = `
                 <div class="history-item win">Round 1: You played ROCK, Opponent played SCISSORS → WIN</div>
                 <div class="history-item lose">Round 2: You played PAPER, Opponent played SCISSORS → LOSE</div>
@@ -808,7 +809,7 @@
             viewReplay(0);
         }
         
-        // Report functions
+        // ============ REPORT FUNCTIONS ============
         function openReportModal() {
             document.getElementById('reportModal').classList.remove('hidden');
         }
@@ -836,6 +837,11 @@
             document.getElementById('reportReason').value = '';
         }
         
+        // ============ TOURNAMENT FUNCTIONS ============
+        function createTournament() { playClickSound(); alert('Tournament feature coming soon!'); }
+        function joinTournament() { playClickSound(); const code = document.getElementById('joinTournamentCode').value; if(code) document.getElementById('tournamentStatus').innerHTML = `Joined tournament ${code}!`; }
+        
+        // ============ LOGOUT ============
         function logout() {
             localStorage.removeItem('token');
             currentUser = null;
@@ -846,14 +852,10 @@
             computerScore = 0;
             document.getElementById('userScore').textContent = '0';
             document.getElementById('computerScore').textContent = '0';
-            if (window.sessionInterval) clearInterval(window.sessionInterval);
+            if (sessionInterval) clearInterval(sessionInterval);
         }
         
-        // Tournament functions
-        function createTournament() { playClickSound(); alert('Tournament feature coming soon!'); }
-        function joinTournament() { playClickSound(); const code = document.getElementById('joinTournamentCode').value; if(code) document.getElementById('tournamentStatus').innerHTML = `Joined tournament ${code}!`; }
-        
-        // Event listeners
+        // ============ EVENT LISTENERS ============
         document.getElementById('loginBtn').onclick = () => login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
         document.getElementById('showRegisterBtn').onclick = () => { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; };
         document.getElementById('backToLoginBtn').onclick = () => { document.getElementById('registerForm').style.display = 'none'; document.getElementById('loginForm').style.display = 'block'; };
@@ -882,6 +884,7 @@
         document.querySelectorAll('[data-session-move]').forEach(btn => { btn.onclick = () => makeSessionMove(btn.getAttribute('data-session-move')); });
         document.querySelectorAll('.mode-card').forEach(card => { card.onclick = () => selectMode(card.getAttribute('data-mode')); });
         
+        // ============ INITIALIZATION ============
         loadThemes();
         loadPowerups();
         
