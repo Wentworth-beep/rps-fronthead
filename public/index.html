@@ -184,6 +184,13 @@
             max-width: 500px;
             width: 90%;
         }
+        .report-ticket {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="theme-cyberpunk">
@@ -305,7 +312,11 @@
                         
                         <div id="multiStatus" class="result">No active session</div>
                         
-                        <button id="reportBtn" class="btn-secondary" style="width: 100%; margin-top: 15px;"><i class="fas fa-flag"></i> REPORT ISSUE</button>
+                        <!-- Report Ticket Button - Only shows after login -->
+                        <div id="reportTicketSection" class="report-ticket">
+                            <button id="reportBtn" class="btn-secondary" style="width: 100%;"><i class="fas fa-flag"></i> REPORT PLAYER / TICKET</button>
+                            <small style="display: block; margin-top: 5px; font-size: 0.7rem;">Report inappropriate behavior</small>
+                        </div>
                     </div>
                     
                     <div class="glass">
@@ -362,13 +373,19 @@
         </div>
     </div>
 
-    <!-- Report Modal -->
+    <!-- Report Modal (Ticket System) -->
     <div id="reportModal" class="hidden report-modal">
         <div class="report-content">
-            <div class="section-title">REPORT PLAYER</div>
-            <input type="text" id="reportUsername" placeholder="Player Username" style="width: 100%; margin-bottom: 15px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: white; padding: 10px; border-radius: 8px;">
-            <textarea id="reportReason" placeholder="Reason for report..." rows="4" style="width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: white; padding: 10px; border-radius: 8px;"></textarea>
-            <button id="submitReportBtn" class="btn-primary" style="width: 100%; margin-top: 15px;">SUBMIT REPORT</button>
+            <div class="section-title"><i class="fas fa-ticket-alt"></i> SUBMIT REPORT TICKET</div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <i class="fas fa-user"></i>
+                <input type="text" id="reportUsername" placeholder="Player Username to Report" style="width: 100%; padding: 12px 15px 12px 40px;">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <i class="fas fa-comment"></i>
+                <textarea id="reportReason" placeholder="Reason for report (cheating, harassment, etc.)" rows="4" style="width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: white; padding: 10px; border-radius: 8px;"></textarea>
+            </div>
+            <button id="submitReportBtn" class="btn-primary" style="width: 100%;"><i class="fas fa-paper-plane"></i> SUBMIT TICKET</button>
             <button onclick="closeReportModal()" class="btn-secondary" style="width: 100%; margin-top: 10px;">CANCEL</button>
         </div>
     </div>
@@ -515,6 +532,8 @@
                     updateLevelProgress(currentUser.total_wins || 0);
                     loadLeaderboard();
                     loadMatchHistory();
+                    // Show report ticket section after login
+                    document.getElementById('reportTicketSection').classList.remove('hidden');
                 } else {
                     document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`;
                 }
@@ -809,7 +828,7 @@
             viewReplay(0);
         }
         
-        // ============ REPORT FUNCTIONS ============
+        // ============ REPORT FUNCTIONS (TICKET SYSTEM) ============
         function openReportModal() {
             document.getElementById('reportModal').classList.remove('hidden');
         }
@@ -822,19 +841,23 @@
             const username = document.getElementById('reportUsername').value;
             const reason = document.getElementById('reportReason').value;
             if (!username || !reason) {
-                alert('Please enter both username and reason');
+                alert('Please enter both player username and reason for report');
                 return;
             }
             const token = localStorage.getItem('token');
-            await fetch(`${BACKEND_URL}/api/report-abuse`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ reportedUsername: username, reason: reason })
-            });
-            alert('Report submitted. Admin will review.');
-            closeReportModal();
-            document.getElementById('reportUsername').value = '';
-            document.getElementById('reportReason').value = '';
+            try {
+                await fetch(`${BACKEND_URL}/api/report-abuse`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ reportedUsername: username, reason: reason })
+                });
+                alert('Report ticket submitted successfully. Admin will review.');
+                closeReportModal();
+                document.getElementById('reportUsername').value = '';
+                document.getElementById('reportReason').value = '';
+            } catch(e) {
+                alert('Failed to submit report. Please try again.');
+            }
         }
         
         // ============ TOURNAMENT FUNCTIONS ============
@@ -888,12 +911,16 @@
         loadThemes();
         loadPowerups();
         
+        // Initially hide report ticket section until login
+        document.getElementById('reportTicketSection').classList.add('hidden');
+        
         const token = localStorage.getItem('token');
         if (token) {
             fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(data => {
                 if (data.valid) {
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('gameApp').classList.remove('hidden');
+                    document.getElementById('reportTicketSection').classList.remove('hidden');
                     loadLeaderboard();
                     loadMatchHistory();
                 }
