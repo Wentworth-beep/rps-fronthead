@@ -62,11 +62,9 @@
         .login-container { max-width: 400px; margin: 100px auto; }
         .input-group { position: relative; margin-bottom: 20px; }
         .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: cyan; }
-        .input-group input { width: 100%; padding: 14px 15px 14px 45px; }
+        .input-group input { width: 100%; padding: 14px 15px 14px 45px; background: rgba(0,0,0,0.6); border: 1px solid cyan; border-radius: 12px; color: white; }
         .hidden { display: none; }
         .btn-primary { background: linear-gradient(135deg, cyan, #00aaff); color: #000; border: none; }
-        .status-banned { color: #ff4b2b; }
-        .status-active { color: #00ff88; }
     </style>
 </head>
 <body>
@@ -88,12 +86,11 @@
             <div class="stats-grid">
                 <div class="stat-card"><i class="fas fa-users"></i><h3 id="onlineCount">0</h3><p>Online Users</p></div>
                 <div class="stat-card"><i class="fas fa-database"></i><h3 id="totalUsers">0</h3><p>Total Registered</p></div>
-                <div class="stat-card"><i class="fas fa-flag"></i><h3 id="reportCount">0</h3><p>Abuse Reports</p></div>
                 <div class="stat-card"><i class="fas fa-gamepad"></i><h3 id="activeGames">0</h3><p>Active Games</p></div>
             </div>
             <div class="glass">
                 <h3><i class="fas fa-users"></i> USER MANAGEMENT</h3>
-                <div style="overflow-x:auto"><table id="usersTable"><thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Badge</th><th>Wins</th><th>MMR</th><th>Status</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+                <div style="overflow-x:auto"><table id="usersTable"><thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Badge</th><th>Wins</th><th>MMR</th><th>Coins</th><th>Status</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
             </div>
             <div class="glass">
                 <h3><i class="fas fa-medal"></i> BADGE MANAGEMENT</h3>
@@ -116,8 +113,7 @@
             const password = document.getElementById('adminPassword').value;
             try {
                 const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
@@ -149,9 +145,9 @@
             users.forEach(user => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${user.id}</td><td>${user.username}</td><td>${user.email}</td>
+                    <td>${user.id}</td><td><i class="fas fa-user"></i> ${user.username}</td><td>${user.email}</td>
                     <td><span class="badge badge-${user.badge}">${user.badge}</span></td>
-                    <td>${user.total_wins}</td><td>${user.mmr}</td>
+                    <td>${user.total_wins}</td><td>${user.mmr}</td><td>${user.coins}</td>
                     <td class="${user.is_banned ? 'status-banned' : 'status-active'}">${user.is_banned ? 'BANNED' : 'ACTIVE'}</td>
                     <td><button onclick="toggleBan(${user.id}, ${!user.is_banned})" class="${user.is_banned ? 'btn-success' : 'btn-danger'}">${user.is_banned ? 'UNBAN' : 'BAN'}</button></td>
                 `;
@@ -173,8 +169,7 @@
         
         window.toggleBan = async (userId, ban) => {
             await fetch(`${BACKEND_URL}/api/admin/ban-user`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
                 body: JSON.stringify({ userId, ban })
             });
             loadUsers();
@@ -185,8 +180,7 @@
             const badge = document.getElementById('assignBadgeSelect').value;
             if (!userId) return;
             await fetch(`${BACKEND_URL}/api/admin/update-badge`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
                 body: JSON.stringify({ userId, badge })
             });
             loadUsers();
