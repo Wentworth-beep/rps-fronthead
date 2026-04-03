@@ -13,7 +13,89 @@ let computerScore = 0;
 let userMoveHistory = [];
 let refreshInterval = null;
 let loginAudio = null;
+// 10-Round Match Session
+let currentSession = null;
+let currentRound = 1;
 
+async function createMatchSession() {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${BACKEND_URL}/api/match/session/create`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+        currentSession = data.sessionCode;
+        showNotification(`Session created! Code: ${data.sessionCode}`, 'success');
+        document.getElementById('sessionCodeDisplay').innerText = data.sessionCode;
+        document.getElementById('sessionInfo').classList.remove('hidden');
+    }
+}
+
+async function joinMatchSession() {
+    const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${BACKEND_URL}/api/match/session/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ sessionCode: code })
+    });
+    const data = await res.json();
+    if (data.success) {
+        currentSession = code;
+        showNotification(`Joined session! Best of 10 rounds against ${data.opponent}`, 'success');
+        startSessionGame();
+    } else {
+        showNotification(data.error, 'error');
+    }
+}
+
+async function makeSessionMove(move) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${BACKEND_URL}/api/match/session/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ sessionCode: currentSession, move, roundNumber: currentRound })
+    });
+    const data = await res.json();
+    
+    if (data.type === 'round_complete') {
+        showRoundResult(data.roundWinner, data.roundLoser);
+        updateScoreboard(data.player1Wins, data.player2Wins, data.ties);
+        currentRound = data.nextRound;
+        document.getElementById('roundDisplay').innerText = `Round ${currentRound}/${data.totalRounds}`;
+    } else if (data.type === 'session_complete') {
+        showSessionComplete(data.winner, data.loser, data.player1Wins, data.player2Wins, data.ties);
+        currentSession = null;
+        currentRound = 1;
+    }
+}
+
+function showRoundResult(winner, loser) {
+    const popup = document.getElementById('resultPopup');
+    const winnerSpan = document.getElementById('popupWinner');
+    const loserSpan = document.getElementById('popupLoser');
+    
+    winnerSpan.innerText = winner;
+    loserSpan.innerText = loser || 'None';
+    popup.classList.remove('hidden');
+    
+    setTimeout(() => {
+        popup.classList.add('hidden');
+    }, 3000);
+}
+
+function showSessionComplete(winner, loser, p1Wins, p2Wins, ties) {
+    const popup = document.getElementById('sessionCompletePopup');
+    document.getElementById('sessionWinner').innerText = winner;
+    document.getElementById('sessionLoser').innerText = loser || 'None';
+    document.getElementById('sessionScore').innerText = `${p1Wins} - ${p2Wins} (Ties: ${ties})`;
+    popup.classList.remove('hidden');
+    
+    setTimeout(() => {
+        popup.classList.add('hidden');
+    }, 5000);
+}
 // DOM Elements
 const authView = document.getElementById('authView');
 const userDashboard = document.getElementById('userDashboard');
