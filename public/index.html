@@ -2,208 +2,688 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel | Kirinyaga University RPS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>RPS Cyber Arena | Kirinyaga University</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            background: linear-gradient(135deg, #0a0a0c, #1a0033);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            min-height: 100vh;
             color: #e0e0e0;
+            transition: all 0.3s ease;
         }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .glass {
-            background: rgba(10, 10, 20, 0.75);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(0,242,255,0.3);
-        }
-        .header {
+        
+        body.theme-cyberpunk { --primary: #00f2ff; --primary-dark: #00aaff; --secondary: #bc13fe; --bg: linear-gradient(135deg, #0a0a0c, #1a0033); }
+        body.theme-fire { --primary: #ff4b2b; --primary-dark: #ff6b35; --secondary: #ff8c00; --bg: linear-gradient(135deg, #1a0000, #330000); }
+        body.theme-ice { --primary: #00e5ff; --primary-dark: #4dd0e1; --secondary: #00bcd4; --bg: linear-gradient(135deg, #001a33, #000033); }
+        body.theme-nature { --primary: #00ff88; --primary-dark: #2ecc71; --secondary: #27ae60; --bg: linear-gradient(135deg, #0a1a0a, #003300); }
+        body.theme-space { --primary: #9b59b6; --primary-dark: #e74c3c; --secondary: #8e44ad; --bg: linear-gradient(135deg, #0a0a2a, #1a0033); }
+        body.theme-gold { --primary: #ffd700; --primary-dark: #ff8c00; --secondary: #ffaa00; --bg: linear-gradient(135deg, #1a1a00, #332200); }
+        
+        body { background: var(--bg); background-size: 400% 400%; animation: gradientShift 15s ease infinite; }
+        @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        
+        .glass { background: rgba(10, 10, 20, 0.75); backdrop-filter: blur(12px); border-radius: 24px; padding: 25px; margin-bottom: 20px; border: 1px solid var(--primary); transition: all 0.3s ease; }
+        .glass:hover { box-shadow: 0 0 20px var(--primary); }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; padding: 15px 25px; background: rgba(0,0,0,0.5); border-radius: 60px; border-left: 4px solid var(--primary); }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo i { font-size: 2.5rem; color: var(--primary); filter: drop-shadow(0 0 8px var(--primary)); }
+        .logo h1 { font-size: 1.4rem; letter-spacing: 3px; font-family: 'Orbitron', monospace; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info { display: flex; gap: 15px; align-items: center; background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 40px; flex-wrap: wrap; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .rank-badge { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; }
+        
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 1000px) { .game-grid { grid-template-columns: 1fr; } }
+        
+        .section-title { font-family: 'Orbitron', monospace; color: var(--primary); margin-bottom: 20px; font-size: 1.3rem; border-left: 3px solid var(--primary); padding-left: 15px; }
+        
+        .move-buttons { display: flex; justify-content: center; gap: 20px; margin: 25px 0; flex-wrap: wrap; }
+        .move-card { background: linear-gradient(135deg, #16213e, #0f3460); border: 2px solid var(--primary); border-radius: 20px; padding: 20px 35px; cursor: pointer; transition: all 0.2s; color: var(--primary); font-weight: bold; text-align: center; }
+        .move-card:hover { transform: scale(1.05); box-shadow: 0 0 25px var(--primary); }
+        .move-card i { font-size: 2rem; display: block; margin-bottom: 10px; }
+        
+        .result { text-align: center; padding: 15px; background: rgba(0,255,255,0.1); border-radius: 12px; margin: 15px 0; font-weight: bold; }
+        .scoreboard { display: flex; justify-content: space-around; margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 15px; font-size: 1.2rem; }
+        
+        .mode-selection { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin: 50px 0; }
+        .mode-card { background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,50,80,0.8)); border-radius: 30px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; width: 280px; border: 2px solid var(--primary); }
+        .mode-card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 40px var(--primary); }
+        .mode-card i { font-size: 4rem; color: var(--primary); margin-bottom: 20px; }
+        .mode-card h3 { font-size: 1.8rem; margin-bottom: 10px; }
+        
+        .game-area { display: none; }
+        .game-area.active { display: block; }
+        .back-btn { background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 10px; cursor: pointer; margin-bottom: 20px; }
+        
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding: 15px 25px;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+        .popup-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            border: 2px solid var(--primary);
+            animation: popIn 0.3s ease;
+            min-width: 350px;
+        }
+        .popup-content h2 { color: gold; margin-bottom: 20px; font-size: 2rem; }
+        .popup-content p { margin: 10px 0; font-size: 1.2rem; }
+        .popup-content strong { color: var(--primary); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        /* Session Info */
+        .session-info {
             background: rgba(0,0,0,0.5);
-            border-radius: 60px;
-            border-left: 4px solid cyan;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
         }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 15px; text-align: center; border-left: 3px solid cyan; }
-        .stat-card i { font-size: 2rem; color: cyan; }
-        .stat-card h3 { font-size: 2rem; margin: 10px 0; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0,242,255,0.2); }
-        th { color: cyan; }
-        button, select, input {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid cyan;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 5px;
+        .session-code {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: var(--primary);
+            font-family: monospace;
         }
-        button:hover { background: cyan; color: #000; }
-        .btn-danger { border-color: #ff4b2b; color: #ff4b2b; }
-        .btn-danger:hover { background: #ff4b2b; color: #fff; }
-        .btn-success { border-color: #00ff88; color: #00ff88; }
-        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
-        .badge-Bronze { background: #cd7f32; }
-        .badge-Silver { background: #c0c0c0; color: #000; }
-        .badge-Gold { background: #ffd700; color: #000; }
-        .badge-Platinum { background: #00e5ff; color: #000; }
-        .badge-Diamond { background: #b9f2ff; color: #000; }
-        .badge-Master { background: #9b59b6; }
-        .badge-Legend { background: #ff4b2b; }
-        .login-container { max-width: 400px; margin: 100px auto; }
+        .round-display { font-size: 1.2rem; margin: 10px 0; }
+        .session-score {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+        
+        /* Level Progress */
+        .level-progress {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .level-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        /* Login */
+        .login-container { max-width: 500px; margin: 80px auto; }
         .input-group { position: relative; margin-bottom: 20px; }
-        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: cyan; }
-        .input-group input { width: 100%; padding: 14px 15px 14px 45px; background: rgba(0,0,0,0.6); border: 1px solid cyan; border-radius: 12px; color: white; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
+        .input-group input { width: 100%; padding: 14px 15px 14px 45px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); border-radius: 12px; color: white; }
+        .password-toggle { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--primary); }
+        
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: bold; border: none; transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,255,255,0.4); }
+        .btn-secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        
         .hidden { display: none; }
-        .btn-primary { background: linear-gradient(135deg, cyan, #00aaff); color: #000; border: none; }
+        .error-msg { color: #ff6b6b; padding: 10px; text-align: center; }
+        .success-msg { color: #51cf66; padding: 10px; text-align: center; }
+        
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(0,255,255,0.2); align-items: center; }
+        .leaderboard-rank { font-size: 1.2rem; font-weight: bold; color: var(--primary); width: 50px; }
+        
+        .history-item { padding: 8px; border-bottom: 1px solid rgba(0,255,255,0.1); font-size: 0.9rem; }
+        .history-item.win { border-left: 3px solid #00ff88; background: rgba(0,255,136,0.05); }
+        .history-item.lose { border-left: 3px solid #ff4b2b; background: rgba(255,75,43,0.05); }
+        
+        .powerup-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .powerup-card { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid var(--primary); }
+        .powerup-card:hover { transform: scale(1.05); }
+        .powerup-card i { font-size: 2rem; color: var(--primary); }
+        
+        .theme-selector { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .theme-option { width: 80px; height: 80px; border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 2px solid transparent; }
+        .theme-option:hover { transform: scale(1.1); }
+        .theme-option.selected { border-color: gold; }
     </style>
 </head>
-<body>
-    <div class="container">
+<body class="theme-cyberpunk">
+    <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 20px;">
+        <!-- Login Section -->
         <div id="loginSection" class="glass login-container">
-            <div style="text-align:center; margin-bottom:20px"><i class="fas fa-crown" style="font-size:3rem; color:cyan"></i><h1>ADMIN PANEL</h1></div>
+            <div class="logo" style="justify-content: center; margin-bottom: 20px;">
+                <i class="fas fa-university"></i>
+                <div><h1>KIRINYAGA UNIVERSITY</h1><p>CYBER ARENA | RPS</p></div>
+            </div>
             <div id="loginMessage"></div>
-            <div class="input-group"><i class="fas fa-user"></i><input type="text" id="adminUsername" placeholder="USERNAME" value="admin"></div>
-            <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="adminPassword" placeholder="PASSWORD"></div>
-            <button id="loginBtn" class="btn-primary" style="width:100%">ADMIN LOGIN</button>
-            <button id="backToGameBtn" style="width:100%; margin-top:10px; background:transparent">BACK TO GAME</button>
+            <div id="loginForm">
+                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="loginUsername" placeholder="USERNAME"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('loginPassword', this)"></i></div>
+                <button id="loginBtn" class="btn-primary" style="width: 100%;">LOGIN</button>
+                <button id="showRegisterBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">REGISTER</button>
+            </div>
+            <div id="registerForm" style="display: none; margin-top: 20px;">
+                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="regUsername" placeholder="USERNAME"></div>
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="regEmail" placeholder="EMAIL"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="regPassword" placeholder="PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('regPassword', this)"></i></div>
+                <div class="input-group"><i class="fas fa-check-circle"></i><input type="password" id="regConfirmPassword" placeholder="CONFIRM PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('regConfirmPassword', this)"></i></div>
+                <button id="confirmRegisterBtn" class="btn-primary" style="width: 100%;">CREATE ACCOUNT</button>
+                <button id="backToLoginBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">BACK TO LOGIN</button>
+            </div>
         </div>
 
-        <div id="dashboardSection" class="hidden">
+        <!-- Main Game App -->
+        <div id="gameApp" class="hidden">
             <div class="header">
-                <div><i class="fas fa-crown"></i> <h1 style="display:inline-block">ADMIN CONTROL PANEL</h1></div>
-                <div><span id="adminName"></span> <button id="logoutBtn">LOGOUT</button></div>
+                <div class="logo"><i class="fas fa-university"></i><div><h1>KIRINYAGA RPS</h1><p>CYBER ARENA</p></div></div>
+                <div class="user-info">
+                    <div class="avatar" id="avatarBtn"><i class="fas fa-user-ninja" id="avatarIcon"></i></div>
+                    <span class="rank-badge" id="rankDisplay">Bronze</span>
+                    <span><i class="fas fa-chart-line"></i> LVL <span id="userLevel">1</span></span>
+                    <span><i class="fas fa-trophy"></i> <span id="userMMR">500</span></span>
+                    <span><i class="fas fa-coins"></i> <span id="userCoins">500</span></span>
+                    <span><i class="fas fa-fire"></i> <span id="winStreak">0</span></span>
+                    <span><i class="fas fa-globe"></i> <span id="onlineCount">0</span></span>
+                    <button id="logoutBtn">LOGOUT</button>
+                </div>
             </div>
-            <div class="stats-grid">
-                <div class="stat-card"><i class="fas fa-users"></i><h3 id="onlineCount">0</h3><p>Online Users</p></div>
-                <div class="stat-card"><i class="fas fa-database"></i><h3 id="totalUsers">0</h3><p>Total Registered</p></div>
-                <div class="stat-card"><i class="fas fa-gamepad"></i><h3 id="activeGames">0</h3><p>Active Games</p></div>
-            </div>
+
+            <!-- Level Progress -->
             <div class="glass">
-                <h3><i class="fas fa-users"></i> USER MANAGEMENT</h3>
-                <div style="overflow-x:auto"><table id="usersTable"><thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Badge</th><th>Wins</th><th>MMR</th><th>Coins</th><th>Status</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+                <div class="section-title"><i class="fas fa-chart-line"></i> LEVEL PROGRESSION</div>
+                <div>Level <span id="currentLevel">1</span> → <span id="nextLevel">2</span></div>
+                <div class="level-progress">
+                    <div class="level-progress-bar" id="levelProgressBar"></div>
+                </div>
+                <div id="winsNeededText" style="text-align: center; font-size: 0.8rem;"></div>
             </div>
-            <div class="glass">
-                <h3><i class="fas fa-medal"></i> BADGE MANAGEMENT</h3>
-                <select id="badgeUserSelect"></select>
-                <select id="assignBadgeSelect">
-                    <option value="Bronze">Bronze</option><option value="Silver">Silver</option><option value="Gold">Gold</option>
-                    <option value="Platinum">Platinum</option><option value="Diamond">Diamond</option><option value="Master">Master</option><option value="Legend">Legend</option>
-                </select>
-                <button id="updateBadgeBtn">ASSIGN BADGE</button>
+
+            <!-- Mode Selection -->
+            <div id="modeSelection" class="mode-selection">
+                <div class="mode-card" data-mode="computer"><i class="fas fa-microchip"></i><h3>VS COMPUTER</h3><p>Practice against AI</p></div>
+                <div class="mode-card" data-mode="multiplayer"><i class="fas fa-wifi"></i><h3>MULTIPLAYER</h3><p>10-Round Match Sessions</p></div>
+                <div class="mode-card" data-mode="tournament"><i class="fas fa-trophy"></i><h3>TOURNAMENT</h3><p>8-player bracket</p></div>
+            </div>
+
+            <!-- VS Computer Mode -->
+            <div id="computerMode" class="game-area">
+                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="game-grid">
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-microchip"></i> VS COMPUTER</div>
+                        <select id="difficultySelect" style="width: 100%; margin-bottom: 20px;">
+                            <option value="easy">EASY</option><option value="medium">MEDIUM</option><option value="hard">HARD</option>
+                        </select>
+                        <div class="move-buttons">
+                            <div class="move-card" data-move="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
+                            <div class="move-card" data-move="paper"><i class="fas fa-hand-peace"></i><div>PAPER</div></div>
+                            <div class="move-card" data-move="scissors"><i class="fas fa-hand-scissors"></i><div>SCISSORS</div></div>
+                        </div>
+                        <div id="computerResult" class="result"></div>
+                        <div class="scoreboard"><span>YOU: <span id="userScore">0</span></span><span>CPU: <span id="computerScore">0</span></span></div>
+                    </div>
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-store"></i> POWER-UP SHOP</div>
+                        <div id="powerupShop" class="powerup-shop"></div>
+                        <div class="section-title"><i class="fas fa-palette"></i> THEMES</div>
+                        <div id="themeSelector" class="theme-selector"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multiplayer Mode - 10 Round Sessions -->
+            <div id="multiplayerMode" class="game-area">
+                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="game-grid">
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-wifi"></i> 10-ROUND MATCH SESSIONS</div>
+                        
+                        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                            <button id="createSessionBtn" class="btn-primary" style="flex: 1;">CREATE 10-ROUND MATCH</button>
+                            <input type="text" id="joinSessionCode" placeholder="SESSION CODE" style="flex: 1; text-transform: uppercase;">
+                            <button id="joinSessionBtn" class="btn-secondary" style="flex: 1;">JOIN SESSION</button>
+                        </div>
+                        
+                        <div id="sessionInfo" class="hidden session-info">
+                            <p>Your Session Code:</p>
+                            <div class="session-code" id="sessionCodeDisplay">XXXXXX</div>
+                            <div class="round-display" id="roundDisplay">Round 1 / 10</div>
+                            <div class="session-score">
+                                <span>YOU: <strong id="sessionPlayer1Wins">0</strong></span>
+                                <span>TIES: <strong id="sessionTies">0</strong></span>
+                                <span>OPPONENT: <strong id="sessionPlayer2Wins">0</strong></span>
+                            </div>
+                        </div>
+                        
+                        <div id="multiGameArea" class="hidden">
+                            <div class="move-buttons">
+                                <div class="move-card" data-session-move="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
+                                <div class="move-card" data-session-move="paper"><i class="fas fa-hand-peace"></i><div>PAPER</div></div>
+                                <div class="move-card" data-session-move="scissors"><i class="fas fa-hand-scissors"></i><div>SCISSORS</div></div>
+                            </div>
+                        </div>
+                        
+                        <div id="multiStatus" class="result">No active session</div>
+                    </div>
+                    
+                    <div class="glass">
+                        <div class="section-title"><i class="fas fa-trophy"></i> LEADERBOARD</div>
+                        <div id="leaderboardList" style="max-height: 300px; overflow-y: auto;"></div>
+                        <div class="section-title"><i class="fas fa-history"></i> MATCH HISTORY</div>
+                        <div id="matchHistory" style="max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tournament Mode -->
+            <div id="tournamentMode" class="game-area">
+                <button class="back-btn" onclick="showModeSelection()"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="glass">
+                    <div class="section-title"><i class="fas fa-trophy"></i> TOURNAMENT</div>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <button id="createTournamentBtn" class="btn-primary">CREATE TOURNAMENT</button>
+                        <input type="text" id="joinTournamentCode" placeholder="TOURNAMENT CODE" style="flex:1;">
+                        <button id="joinTournamentBtn" class="btn-secondary">JOIN</button>
+                    </div>
+                    <div id="tournamentStatus" class="result">No active tournament</div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Round Result Popup -->
+    <div id="roundPopup" class="popup hidden">
+        <div class="popup-content">
+            <h2>ROUND COMPLETE!</h2>
+            <p>Winner: <strong id="roundWinner"></strong></p>
+            <p>Loser: <strong id="roundLoser"></strong></p>
+        </div>
+    </div>
+
+    <!-- Session Complete Popup -->
+    <div id="sessionCompletePopup" class="popup hidden">
+        <div class="popup-content">
+            <h2>MATCH COMPLETE!</h2>
+            <p>Winner: <strong id="sessionWinner"></strong></p>
+            <p>Loser: <strong id="sessionLoser"></strong></p>
+            <p>Final Score: <strong id="sessionFinalScore"></strong></p>
+            <p>Coins Earned: <strong id="sessionCoinsEarned">0</strong></p>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px;">
+        <div class="glass">
+            <div class="section-title">CUSTOMIZE AVATAR</div>
+            <div class="avatar-selector" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <div class="avatar-option" data-avatar="ninja"><i class="fas fa-user-ninja"></i></div>
+                <div class="avatar-option" data-avatar="robot"><i class="fas fa-robot"></i></div>
+                <div class="avatar-option" data-avatar="dragon"><i class="fas fa-dragon"></i></div>
+                <div class="avatar-option" data-avatar="wizard"><i class="fas fa-hat-wizard"></i></div>
+                <div class="avatar-option" data-avatar="ghost"><i class="fas fa-ghost"></i></div>
+            </div>
+            <button id="closeProfileModal" style="width: 100%; margin-top: 15px;">CLOSE</button>
+        </div>
+    </div>
+
     <script>
+        // ============ CONFIGURATION ============
         const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
-        let adminToken = null;
         
-        async function adminLogin() {
-            const username = document.getElementById('adminUsername').value;
-            const password = document.getElementById('adminPassword').value;
+        let currentUser = null;
+        let currentSession = null;
+        let currentRound = 1;
+        let totalRounds = 10;
+        let userScore = 0, computerScore = 0;
+        
+        // Audio Context
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(frequency, duration, volume) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = frequency;
+            gainNode.gain.value = volume || 0.3;
+            oscillator.start();
+            setTimeout(() => { oscillator.stop(); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.1); }, duration);
+        }
+        function playWinSound() { playBeep(880,200,0.3); setTimeout(()=>playBeep(1046.5,300,0.3),200); setTimeout(()=>playBeep(1318.52,500,0.3),500); canvasConfetti({particleCount:150,spread:70,origin:{y:0.6}}); }
+        function playLoseSound() { playBeep(440,300,0.3); setTimeout(()=>playBeep(349.23,400,0.3),300); }
+        function playDrawSound() { playBeep(587.33,200,0.2); setTimeout(()=>playBeep(587.33,200,0.2),250); }
+        function playClickSound() { playBeep(800,50,0.1); }
+        
+        // Themes
+        const themes = { cyberpunk:'Cyberpunk', fire:'Fire', ice:'Ice', nature:'Nature', space:'Space', gold:'Gold' };
+        function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); }
+        function loadThemes() {
+            const container = document.getElementById('themeSelector');
+            const html = Object.entries(themes).map(([id, name]) => `<div class="theme-option" data-theme="${id}" style="background: linear-gradient(135deg, var(--primary), var(--secondary));"><i class="fas fa-palette"></i><span>${name}</span></div>`).join('');
+            container.innerHTML = html;
+            document.querySelectorAll('.theme-option').forEach(opt => { opt.onclick = () => { applyTheme(opt.getAttribute('data-theme')); playClickSound(); }; });
+        }
+        
+        // Power-ups
+        const powerUps = [
+            { id: 'double_points', name: 'Double Points', icon: 'fa-bolt', cost: 500 },
+            { id: 'shield', name: 'Shield', icon: 'fa-shield-alt', cost: 300 },
+            { id: 'prediction', name: 'Prediction', icon: 'fa-eye', cost: 400 },
+            { id: 'lucky_charm', name: 'Lucky Charm', icon: 'fa-clover', cost: 600 }
+        ];
+        function loadPowerups() {
+            const container = document.getElementById('powerupShop');
+            container.innerHTML = powerUps.map(p => `
+                <div class="powerup-card" data-powerup="${p.id}">
+                    <i class="fas ${p.icon}"></i>
+                    <div><strong>${p.name}</strong></div>
+                    <div style="color:gold;">${p.cost} coins</div>
+                    <button class="buy-powerup">BUY</button>
+                </div>
+            `).join('');
+            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${powerUps[i].name}!`); }; });
+        }
+        
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+            else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+        }
+        
+        function showModeSelection() { document.querySelectorAll('.game-area').forEach(area => area.classList.remove('active')); document.getElementById('modeSelection').style.display = 'flex'; }
+        function selectMode(mode) { document.getElementById('modeSelection').style.display = 'none'; document.getElementById(mode + 'Mode').classList.add('active'); }
+        
+        function showRoundPopup(winner, loser) {
+            document.getElementById('roundWinner').innerText = winner;
+            document.getElementById('roundLoser').innerText = loser || 'None';
+            document.getElementById('roundPopup').classList.remove('hidden');
+            setTimeout(() => document.getElementById('roundPopup').classList.add('hidden'), 3000);
+        }
+        
+        function showSessionCompletePopup(winner, loser, score, coins) {
+            document.getElementById('sessionWinner').innerText = winner;
+            document.getElementById('sessionLoser').innerText = loser || 'None';
+            document.getElementById('sessionFinalScore').innerText = score;
+            document.getElementById('sessionCoinsEarned').innerText = coins;
+            document.getElementById('sessionCompletePopup').classList.remove('hidden');
+            setTimeout(() => document.getElementById('sessionCompletePopup').classList.add('hidden'), 5000);
+        }
+        
+        function updateSessionScore(p1Wins, p2Wins, ties) {
+            document.getElementById('sessionPlayer1Wins').innerText = p1Wins;
+            document.getElementById('sessionPlayer2Wins').innerText = p2Wins;
+            document.getElementById('sessionTies').innerText = ties;
+        }
+        
+        function updateLevelProgress(wins) {
+            const level = Math.floor(wins / 5) + 1;
+            const nextLevelWins = level * 5;
+            const currentLevelWins = (level - 1) * 5;
+            const progress = ((wins - currentLevelWins) / 5) * 100;
+            document.getElementById('levelProgressBar').style.width = `${Math.min(progress, 100)}%`;
+            document.getElementById('currentLevel').innerText = level;
+            document.getElementById('nextLevel').innerText = level + 1;
+            document.getElementById('winsNeededText').innerText = `${nextLevelWins - wins} more wins to reach Level ${level + 1}`;
+        }
+        
+        async function login(username, password) {
             try {
-                const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
+                const res = await fetch(`${BACKEND_URL}/api/login`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    adminToken = data.token;
-                    localStorage.setItem('adminToken', adminToken);
+                    currentUser = data.user;
+                    localStorage.setItem('token', data.token);
                     document.getElementById('loginSection').classList.add('hidden');
-                    document.getElementById('dashboardSection').classList.remove('hidden');
-                    document.getElementById('adminName').textContent = data.admin.username;
-                    loadDashboard();
+                    document.getElementById('gameApp').classList.remove('hidden');
+                    document.getElementById('rankDisplay').textContent = currentUser.rank;
+                    document.getElementById('userLevel').textContent = currentUser.level;
+                    document.getElementById('userMMR').textContent = currentUser.mmr;
+                    document.getElementById('userCoins').textContent = currentUser.coins;
+                    document.getElementById('winStreak').textContent = currentUser.win_streak || 0;
+                    updateLevelProgress(currentUser.total_wins || 0);
+                    loadLeaderboard();
+                    loadMatchHistory();
                 } else {
-                    document.getElementById('loginMessage').innerHTML = `<div style="color:#ff4b2b">${data.error}</div>`;
+                    document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`;
                 }
-            } catch(error) {
-                document.getElementById('loginMessage').innerHTML = '<div style="color:#ff4b2b">Connection error</div>';
+            } catch (error) {
+                document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Connection error</div>';
             }
         }
         
-        async function loadDashboard() {
-            await loadUsers();
-            await loadStats();
+        async function register(username, email, password, confirmPassword) {
+            if (!username || !email || !password) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Please fill all fields</div>'; return; }
+            if (password !== confirmPassword) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Passwords do not match</div>'; return; }
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/register`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('loginMessage').innerHTML = '<div class="success-msg">Registration successful! Please login.</div>';
+                    document.getElementById('registerForm').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                } else {
+                    document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Registration failed</div>';
+            }
         }
         
-        async function loadUsers() {
-            const res = await fetch(`${BACKEND_URL}/api/admin/users`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
-            const users = await res.json();
-            const tbody = document.getElementById('usersTableBody');
-            tbody.innerHTML = '';
-            users.forEach(user => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${user.id}</td><td><i class="fas fa-user"></i> ${user.username}</td><td>${user.email}</td>
-                    <td><span class="badge badge-${user.badge}">${user.badge}</span></td>
-                    <td>${user.total_wins}</td><td>${user.mmr}</td><td>${user.coins}</td>
-                    <td class="${user.is_banned ? 'status-banned' : 'status-active'}">${user.is_banned ? 'BANNED' : 'ACTIVE'}</td>
-                    <td><button onclick="toggleBan(${user.id}, ${!user.is_banned})" class="${user.is_banned ? 'btn-success' : 'btn-danger'}">${user.is_banned ? 'UNBAN' : 'BAN'}</button></td>
-                `;
-            });
-            const select = document.getElementById('badgeUserSelect');
-            select.innerHTML = '<option value="">Select User</option>';
-            users.filter(u => u.role !== 'admin').forEach(u => { select.innerHTML += `<option value="${u.id}">${u.username} (${u.badge})</option>`; });
+        async function loadLeaderboard() {
+            const res = await fetch(`${BACKEND_URL}/api/leaderboard`);
+            const leaders = await res.json();
+            document.getElementById('leaderboardList').innerHTML = leaders.map(l => `
+                <div class="leaderboard-item">
+                    <div class="leaderboard-rank">#${l.rank}</div>
+                    <div><i class="fas fa-user-${l.avatar || 'ninja'}"></i> ${l.username}</div>
+                    <div>${l.wins} wins</div>
+                    <div>${l.mmr} MMR</div>
+                </div>
+            `).join('');
         }
         
-        async function loadStats() {
-            const online = await fetch(`${BACKEND_URL}/api/admin/online-count`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
-            const onlineData = await online.json();
-            document.getElementById('onlineCount').textContent = onlineData.count;
-            const total = await fetch(`${BACKEND_URL}/api/admin/total-users`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
-            const totalData = await total.json();
-            document.getElementById('totalUsers').textContent = totalData.count;
-            document.getElementById('activeGames').textContent = '0';
+        async function loadMatchHistory() {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${BACKEND_URL}/api/match-history`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const history = await res.json();
+            document.getElementById('matchHistory').innerHTML = history.slice(0, 10).map(h => `
+                <div class="history-item ${h.result}">
+                    vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}
+                </div>
+            `).join('');
         }
         
-        window.toggleBan = async (userId, ban) => {
-            await fetch(`${BACKEND_URL}/api/admin/ban-user`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-                body: JSON.stringify({ userId, ban })
+        async function playVsComputer(move) {
+            const token = localStorage.getItem('token');
+            const difficulty = document.getElementById('difficultySelect').value;
+            const res = await fetch(`${BACKEND_URL}/api/game/computer`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ playerMove: move, difficulty })
             });
-            loadUsers();
-        };
+            const data = await res.json();
+            
+            let resultText = `You: ${data.playerMove} | CPU: ${data.computerMove} → `;
+            if (data.result === 'win') {
+                resultText += 'VICTORY!';
+                userScore++;
+                playWinSound();
+                if (data.level_up) showRoundPopup('You', 'Computer');
+                updateLevelProgress((currentUser?.total_wins || 0) + 1);
+            } else if (data.result === 'lose') {
+                resultText += 'DEFEAT!';
+                computerScore++;
+                playLoseSound();
+            } else {
+                resultText += 'DRAW!';
+                playDrawSound();
+            }
+            
+            document.getElementById('computerResult').innerHTML = resultText;
+            document.getElementById('userScore').textContent = userScore;
+            document.getElementById('computerScore').textContent = computerScore;
+            document.getElementById('userCoins').textContent = data.total_coins;
+            document.getElementById('winStreak').textContent = data.win_streak || 0;
+            loadMatchHistory();
+            loadLeaderboard();
+            if (currentUser) currentUser.total_wins = (currentUser.total_wins || 0) + (data.result === 'win' ? 1 : 0);
+        }
         
-        async function updateBadge() {
-            const userId = document.getElementById('badgeUserSelect').value;
-            const badge = document.getElementById('assignBadgeSelect').value;
-            if (!userId) return;
-            await fetch(`${BACKEND_URL}/api/admin/update-badge`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-                body: JSON.stringify({ userId, badge })
+        // 10-Round Session Functions
+        async function createSession() {
+            playClickSound();
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${BACKEND_URL}/api/match/session/create`, {
+                method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
             });
-            loadUsers();
+            const data = await res.json();
+            if (data.success) {
+                currentSession = data.sessionCode;
+                currentRound = 1;
+                document.getElementById('sessionCodeDisplay').innerText = data.sessionCode;
+                document.getElementById('sessionInfo').classList.remove('hidden');
+                document.getElementById('multiGameArea').classList.remove('hidden');
+                document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Session created! Share code with opponent.</div>';
+                updateSessionScore(0, 0, 0);
+                document.getElementById('roundDisplay').innerText = `Round 1 / ${data.totalRounds}`;
+            }
+        }
+        
+        async function joinSession() {
+            playClickSound();
+            const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
+            if (!code) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Enter session code</div>'; return; }
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${BACKEND_URL}/api/match/session/join`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ sessionCode: code })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentSession = code;
+                currentRound = 1;
+                document.getElementById('sessionCodeDisplay').innerText = code;
+                document.getElementById('sessionInfo').classList.remove('hidden');
+                document.getElementById('multiGameArea').classList.remove('hidden');
+                document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined session! Best of 10 rounds!</div>';
+                updateSessionScore(0, 0, 0);
+                document.getElementById('roundDisplay').innerText = `Round 1 / 10`;
+            } else {
+                document.getElementById('multiStatus').innerHTML = `<div class="error-msg">${data.error}</div>`;
+            }
+        }
+        
+        async function makeSessionMove(move) {
+            if (!currentSession) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">No active session</div>'; return; }
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${BACKEND_URL}/api/match/session/move`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ sessionCode: currentSession, move, roundNumber: currentRound })
+            });
+            const data = await res.json();
+            
+            if (data.type === 'round_complete') {
+                showRoundPopup(data.roundWinner, data.roundLoser);
+                updateSessionScore(data.player1Wins, data.player2Wins, data.ties);
+                currentRound = data.nextRound;
+                document.getElementById('roundDisplay').innerText = `Round ${currentRound} / ${data.totalRounds}`;
+                if (data.roundWinner === currentUser?.username) playWinSound();
+                else if (data.roundLoser === currentUser?.username) playLoseSound();
+                else playDrawSound();
+            } else if (data.type === 'session_complete') {
+                showSessionCompletePopup(data.winner, data.loser, `${data.player1Wins} - ${data.player2Wins} (Ties: ${data.ties})`, 100);
+                currentSession = null;
+                currentRound = 1;
+                document.getElementById('sessionInfo').classList.add('hidden');
+                document.getElementById('multiGameArea').classList.add('hidden');
+                document.getElementById('multiStatus').innerHTML = 'Session complete!';
+                loadLeaderboard();
+                loadMatchHistory();
+                if (data.winner === currentUser?.username) playWinSound();
+                else playLoseSound();
+            } else {
+                document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Move sent! Waiting for opponent...</div>';
+            }
         }
         
         function logout() {
-            localStorage.removeItem('adminToken');
+            localStorage.removeItem('token');
+            currentUser = null;
             document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('gameApp').classList.add('hidden');
+            document.getElementById('modeSelection').style.display = 'flex';
+            userScore = 0;
+            computerScore = 0;
+            document.getElementById('userScore').textContent = '0';
+            document.getElementById('computerScore').textContent = '0';
         }
         
-        document.getElementById('loginBtn').onclick = adminLogin;
+        // Tournament functions
+        function createTournament() { playClickSound(); alert('Tournament feature coming soon!'); }
+        function joinTournament() { playClickSound(); const code = document.getElementById('joinTournamentCode').value; if(code) document.getElementById('tournamentStatus').innerHTML = `Joined tournament ${code}!`; }
+        
+        // Event listeners
+        document.getElementById('loginBtn').onclick = () => login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
+        document.getElementById('showRegisterBtn').onclick = () => { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; };
+        document.getElementById('backToLoginBtn').onclick = () => { document.getElementById('registerForm').style.display = 'none'; document.getElementById('loginForm').style.display = 'block'; };
+        document.getElementById('confirmRegisterBtn').onclick = () => register(document.getElementById('regUsername').value, document.getElementById('regEmail').value, document.getElementById('regPassword').value, document.getElementById('regConfirmPassword').value);
         document.getElementById('logoutBtn').onclick = logout;
-        document.getElementById('backToGameBtn').onclick = () => window.location.href = '/';
-        document.getElementById('updateBadgeBtn').onclick = updateBadge;
+        document.getElementById('createSessionBtn').onclick = createSession;
+        document.getElementById('joinSessionBtn').onclick = joinSession;
+        document.getElementById('createTournamentBtn').onclick = createTournament;
+        document.getElementById('joinTournamentBtn').onclick = joinTournament;
+        document.getElementById('avatarBtn').onclick = () => document.getElementById('profileModal').classList.toggle('hidden');
+        document.getElementById('closeProfileModal').onclick = () => document.getElementById('profileModal').classList.add('hidden');
         
-        const savedToken = localStorage.getItem('adminToken');
-        if (savedToken) {
-            adminToken = savedToken;
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('dashboardSection').classList.remove('hidden');
-            loadDashboard();
+        document.querySelectorAll('.avatar-option').forEach(opt => { opt.onclick = async () => { 
+            const avatar = opt.getAttribute('data-avatar'); 
+            const token = localStorage.getItem('token');
+            await fetch(`${BACKEND_URL}/api/update-avatar`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ avatar }) });
+            document.getElementById('avatarIcon').className = `fas fa-user-${avatar}`;
+            document.getElementById('profileModal').classList.add('hidden');
+            playClickSound();
+        }; });
+        
+        document.querySelectorAll('[data-move]').forEach(btn => { btn.onclick = () => playVsComputer(btn.getAttribute('data-move')); });
+        document.querySelectorAll('[data-session-move]').forEach(btn => { btn.onclick = () => makeSessionMove(btn.getAttribute('data-session-move')); });
+        document.querySelectorAll('.mode-card').forEach(card => { card.onclick = () => selectMode(card.getAttribute('data-mode')); });
+        
+        loadThemes();
+        loadPowerups();
+        
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(data => {
+                if (data.valid) {
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('gameApp').classList.remove('hidden');
+                    loadLeaderboard();
+                    loadMatchHistory();
+                }
+            });
         }
+        document.body.addEventListener('click', () => { if (audioContext.state === 'suspended') audioContext.resume(); }, { once: true });
     </script>
 </body>
 </html>
