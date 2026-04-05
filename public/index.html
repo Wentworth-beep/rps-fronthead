@@ -190,7 +190,7 @@
             color: cyan;
         }
         
-        .replay-modal, .report-modal {
+        .replay-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -202,20 +202,13 @@
             justify-content: center;
             z-index: 1001;
         }
-        .replay-content, .report-content {
+        .replay-content {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             padding: 30px;
             border-radius: 20px;
             border: 2px solid var(--primary);
             max-width: 500px;
             width: 90%;
-        }
-        .report-ticket {
-            background: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            padding: 10px;
-            margin-top: 15px;
-            text-align: center;
         }
         
         .tab-bar {
@@ -357,12 +350,6 @@
                         </div>
                         
                         <div id="multiStatus" class="result">No active match</div>
-                        
-                        <!-- Report Ticket - Hidden until login -->
-                        <div id="reportTicketSection" class="report-ticket hidden">
-                            <button id="reportBtn" class="btn-secondary" style="width: 100%;"><i class="fas fa-ticket-alt"></i> REPORT PLAYER / CREATE TICKET</button>
-                            <small style="display: block; margin-top: 5px; font-size: 0.7rem;">Report inappropriate behavior</small>
-                        </div>
                     </div>
                     
                     <div class="glass">
@@ -459,8 +446,6 @@
             <button onclick="closeReplayModal()" class="btn-secondary" style="width: 100%; margin-top: 15px;">CLOSE</button>
         </div>
     </div>
-
-    
 
     <script>
         // ============ BACKEND URL ============
@@ -588,9 +573,12 @@
                     loadLeaderboard();
                     loadMatchHistory();
                     loadProfileStats();
-                    // Show report ticket section after login
-                    document.getElementById('reportTicketSection').classList.remove('hidden');
-                } 
+                } else {
+                    document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Connection error</div>';
+            }
         }
         
         async function register(username, email, password, confirmPassword) {
@@ -899,27 +887,6 @@
         
         function closeReplayModal() { document.getElementById('replayModal').classList.add('hidden'); }
         
-        // ============ REPORT FUNCTIONS ============
-        function openReportModal() { document.getElementById('reportModal').classList.remove('hidden'); }
-        function closeReportModal() { document.getElementById('reportModal').classList.add('hidden'); }
-        
-        async function submitReport() {
-            const username = document.getElementById('reportUsername').value;
-            const reason = document.getElementById('reportReason').value;
-            if (!username || !reason) { alert('Please enter both player username and reason'); return; }
-            const token = localStorage.getItem('token');
-            try {
-                await fetch(`${BACKEND_URL}/api/report-abuse`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ reportedUsername: username, reason: reason })
-                });
-                alert('Report ticket submitted. Admin will review.');
-                closeReportModal();
-                document.getElementById('reportUsername').value = '';
-                document.getElementById('reportReason').value = '';
-            } catch(e) { alert('Failed to submit report'); }
-        }
-        
         // ============ TAB NAVIGATION ============
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -938,8 +905,6 @@
             document.getElementById('userScore').textContent = '0';
             document.getElementById('computerScore').textContent = '0';
             if (sessionInterval) clearInterval(sessionInterval);
-            // Hide report ticket section on logout
-            document.getElementById('reportTicketSection').classList.add('hidden');
         }
         
         // ============ AVATAR UPDATE ============
@@ -964,8 +929,6 @@
         document.getElementById('copyCodeBtn').onclick = copySessionCode;
         document.getElementById('createTournamentBtn').onclick = createTournament;
         document.getElementById('joinTournamentBtn').onclick = joinTournament;
-        document.getElementById('reportBtn').onclick = openReportModal;
-        document.getElementById('submitReportBtn').onclick = submitReport;
         document.getElementById('avatarBtn').onclick = () => {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
@@ -982,16 +945,12 @@
         loadThemes();
         loadPowerups();
         
-        // Report ticket starts hidden
-        document.getElementById('reportTicketSection').classList.add('hidden');
-        
         const token = localStorage.getItem('token');
         if (token) {
             fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(data => {
                 if (data.valid) {
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('gameApp').classList.remove('hidden');
-                    document.getElementById('reportTicketSection').classList.remove('hidden');
                     loadLeaderboard();
                     loadMatchHistory();
                     loadProfileStats();
