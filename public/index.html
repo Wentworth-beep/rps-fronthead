@@ -190,26 +190,8 @@
             color: cyan;
         }
         
-        .replay-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1001;
-        }
-        .replay-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            padding: 30px;
-            border-radius: 20px;
-            border: 2px solid var(--primary);
-            max-width: 500px;
-            width: 90%;
-        }
+    
+        
         
         .tab-bar {
             display: flex;
@@ -438,16 +420,7 @@
         </div>
     </div>
 
-    <!-- Replay Modal -->
-    <div id="replayModal" class="hidden replay-modal">
-        <div class="replay-content">
-            <div class="section-title">MATCH REPLAY</div>
-            <div id="replayMoves" style="max-height: 400px; overflow-y: auto;"></div>
-            <button onclick="closeReplayModal()" class="btn-secondary" style="width: 100%; margin-top: 15px;">CLOSE</button>
-        </div>
-    </div>
 
-    <script>
         // ============ BACKEND URL ============
         const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
         
