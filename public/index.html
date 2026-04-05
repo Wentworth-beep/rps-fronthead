@@ -144,7 +144,7 @@
         .leaderboard-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(0,255,255,0.2); align-items: center; }
         .leaderboard-rank { font-size: 1.2rem; font-weight: bold; color: var(--primary); width: 50px; }
         
-        .history-item { padding: 8px; border-bottom: 1px solid rgba(0,255,255,0.1); font-size: 0.9rem; cursor: pointer; }
+        .history-item { padding: 8px; border-bottom: 1px solid rgba(0,255,255,0.1); font-size: 0.9rem; }
         .history-item.win { border-left: 3px solid #00ff88; background: rgba(0,255,136,0.05); }
         .history-item.lose { border-left: 3px solid #ff4b2b; background: rgba(255,75,43,0.05); }
         
@@ -189,9 +189,6 @@
             background: rgba(0,255,255,0.3);
             color: cyan;
         }
-        
-    
-        
         
         .tab-bar {
             display: flex;
@@ -420,7 +417,7 @@
         </div>
     </div>
 
-
+    <script>
         // ============ BACKEND URL ============
         const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
         
@@ -431,7 +428,6 @@
         let userScore = 0, computerScore = 0;
         let activeSessions = {};
         let sessionInterval = null;
-        let matchHistory = [];
         let tournaments = [];
         let currentTournament = null;
         
@@ -598,9 +594,9 @@
             if (!token) return;
             try {
                 const res = await fetch(`${BACKEND_URL}/api/match-history`, { headers: { 'Authorization': `Bearer ${token}` } });
-                matchHistory = await res.json();
-                const html = matchHistory.slice(0, 10).map((h, i) => `
-                    <div class="history-item ${h.result}" onclick="viewReplay(${i})">
+                const history = await res.json();
+                const html = history.slice(0, 10).map(h => `
+                    <div class="history-item ${h.result}">
                         vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}
                         <small style="display: block; font-size: 0.7rem; color: #888;">${new Date(h.timestamp).toLocaleTimeString()}</small>
                     </div>
@@ -843,22 +839,6 @@
                 bracketDiv.innerHTML = '<div style="text-align:center; padding:20px;">Create or join a tournament to see bracket</div>';
             }
         }
-        
-        // ============ REPLAY FUNCTIONS ============
-        function viewReplay(index) {
-            const replayModal = document.getElementById('replayModal');
-            const replayMoves = document.getElementById('replayMoves');
-            replayMoves.innerHTML = `
-                <div class="history-item win">Round 1: You played ROCK, Opponent played SCISSORS → WIN</div>
-                <div class="history-item lose">Round 2: You played PAPER, Opponent played SCISSORS → LOSE</div>
-                <div class="history-item win">Round 3: You played SCISSORS, Opponent played PAPER → WIN</div>
-                <div class="history-item tie">Round 4: You played ROCK, Opponent played ROCK → TIE</div>
-                <div style="padding: 10px; text-align: center; margin-top: 10px;"><strong>Replay available</strong></div>
-            `;
-            replayModal.classList.remove('hidden');
-        }
-        
-        function closeReplayModal() { document.getElementById('replayModal').classList.add('hidden'); }
         
         // ============ TAB NAVIGATION ============
         function switchTab(tabId) {
