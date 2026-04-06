@@ -128,7 +128,35 @@
         .input-group { position: relative; margin-bottom: 20px; }
         .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
         .input-group input { width: 100%; padding: 14px 15px 14px 45px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); border-radius: 12px; color: white; }
-        .password-toggle { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--primary); }
+        
+        /* Password wrapper for eye icon outside input */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .password-wrapper input {
+            flex: 1;
+            padding: 14px 15px 14px 45px;
+        }
+        .password-toggle-icon {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 12px 15px;
+            cursor: pointer;
+            color: var(--primary);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-toggle-icon:hover {
+            background: var(--primary);
+            color: #000;
+            transform: scale(1.02);
+        }
         
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: bold; border: none; transition: all 0.3s; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,255,255,0.4); }
@@ -234,17 +262,50 @@
             </div>
             <div id="loginMessage"></div>
             <div id="loginForm">
-                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="loginUsername" placeholder="USERNAME"></div>
-                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('loginPassword', this)"></i></div>
-                <button id="loginBtn" class="btn-primary" style="width: 100%;">LOGIN</button>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="loginUsername" placeholder="USERNAME">
+                </div>
+                <div class="password-wrapper">
+                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="loginPassword" placeholder="PASSWORD">
+                    </div>
+                    <div class="password-toggle-icon" onclick="togglePassword('loginPassword', this)">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                </div>
+                <button id="loginBtn" class="btn-primary" style="width: 100%; margin-top: 20px;">LOGIN</button>
                 <button id="showRegisterBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">REGISTER</button>
             </div>
             <div id="registerForm" style="display: none; margin-top: 20px;">
-                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="regUsername" placeholder="USERNAME"></div>
-                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="regEmail" placeholder="EMAIL"></div>
-                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="regPassword" placeholder="PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('regPassword', this)"></i></div>
-                <div class="input-group"><i class="fas fa-check-circle"></i><input type="password" id="regConfirmPassword" placeholder="CONFIRM PASSWORD"><i class="fas fa-eye password-toggle" onclick="togglePassword('regConfirmPassword', this)"></i></div>
-                <button id="confirmRegisterBtn" class="btn-primary" style="width: 100%;">CREATE ACCOUNT</button>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="regUsername" placeholder="USERNAME">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="regEmail" placeholder="EMAIL">
+                </div>
+                <div class="password-wrapper" style="margin-bottom: 15px;">
+                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="regPassword" placeholder="PASSWORD">
+                    </div>
+                    <div class="password-toggle-icon" onclick="togglePassword('regPassword', this)">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                </div>
+                <div class="password-wrapper">
+                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                        <i class="fas fa-check-circle"></i>
+                        <input type="password" id="regConfirmPassword" placeholder="CONFIRM PASSWORD">
+                    </div>
+                    <div class="password-toggle-icon" onclick="togglePassword('regConfirmPassword', this)">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                </div>
+                <button id="confirmRegisterBtn" class="btn-primary" style="width: 100%; margin-top: 20px;">CREATE ACCOUNT</button>
                 <button id="backToLoginBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">BACK TO LOGIN</button>
             </div>
         </div>
@@ -327,14 +388,12 @@
                             <div class="session-code" id="sessionCodeDisplay">XXXXXX</div>
                             <button id="copyCodeBtn" class="btn-primary" style="margin-top: 10px;"><i class="fas fa-copy"></i> COPY CODE</button>
                             
-                            <!-- Waiting for opponent status -->
                             <div id="waitingForOpponent" class="waiting-status">
                                 <div class="waiting-spinner"></div>
                                 <p><i class="fas fa-clock"></i> Waiting for opponent to join...</p>
                                 <p style="font-size: 0.8rem; margin-top: 5px;">Share the code above with your friend</p>
                             </div>
                             
-                            <!-- Opponent joined notification -->
                             <div id="opponentJoined" class="hidden" style="background: rgba(0,255,136,0.2); border-radius: 15px; padding: 15px; margin: 15px 0; text-align: center;">
                                 <i class="fas fa-check-circle" style="font-size: 2rem; color: #00ff88;"></i>
                                 <p><strong>Opponent Joined!</strong></p>
@@ -466,6 +525,22 @@
             withCredentials: true
         });
         
+        // ============ PASSWORD TOGGLE FUNCTION ============
+        function togglePassword(inputId, toggleBtn) {
+            const input = document.getElementById(inputId);
+            const icon = toggleBtn.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        
         // ============ AUDIO FUNCTIONS ============
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep(frequency, duration, volume) {
@@ -540,12 +615,6 @@
         }
         
         // ============ UI HELPERS ============
-        function togglePassword(inputId, icon) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
-            else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
-        }
-        
         function updateLevelProgress(wins) {
             const level = Math.floor(wins / 5) + 1;
             const nextLevelWins = level * 5;
@@ -745,7 +814,6 @@
         // ============ MULTIPLAYER FUNCTIONS ============
         function generateSessionCode() { return Math.random().toString(36).substring(2, 10).toUpperCase(); }
         
-        // Disable move buttons until opponent joins
         function setMoveButtonsEnabled(enabled) {
             const moveButtons = document.querySelectorAll('[data-session-move]');
             moveButtons.forEach(btn => {
@@ -765,9 +833,7 @@
             playClickSound();
             if (!currentUser) { showNotification('Please login first', 'error'); return; }
             
-            // Reset opponent joined flag
             isOpponentJoined = false;
-            
             const sessionCode = generateSessionCode();
             currentSession = sessionCode;
             currentRound = 1;
@@ -795,11 +861,7 @@
             showNotification(`Match created! Code: ${sessionCode}`, 'success');
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
-            
-            // Disable moves until opponent joins
             setMoveButtonsEnabled(false);
-            
-            // Start polling for opponent
             startSessionPolling(sessionCode);
         }
         
@@ -824,8 +886,6 @@
             document.getElementById('sessionCodeDisplay').innerText = code;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
-            
-            // Hide waiting, show opponent joined
             document.getElementById('waitingForOpponent').classList.add('hidden');
             document.getElementById('opponentJoined').classList.remove('hidden');
             document.getElementById('opponentName').innerHTML = `<strong>${session.creator}</strong> is ready to play!`;
@@ -834,13 +894,8 @@
             showNotification(`Joined match against ${session.creator}! Tap to play!`, 'success');
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
-            
-            // Enable moves since opponent has joined
             setMoveButtonsEnabled(true);
-            
-            // Notify the creator that opponent joined
             showNotification(`✅ ${currentUser.username} joined the match! Start playing!`, 'success');
-            
             startSessionPolling(code);
         }
         
@@ -852,7 +907,6 @@
                     updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
                     document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
                     
-                    // If opponent has joined, hide waiting and show opponent joined
                     if (session.players.length >= 2 && !isOpponentJoined) {
                         isOpponentJoined = true;
                         document.getElementById('waitingForOpponent').classList.add('hidden');
@@ -887,7 +941,6 @@
             const session = activeSessions[currentSession];
             if (!session) return;
             
-            // Check if opponent has joined
             if (session.players.length < 2) {
                 showNotification('Waiting for opponent to join...', 'warning');
                 return;
