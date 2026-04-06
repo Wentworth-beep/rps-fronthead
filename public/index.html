@@ -102,6 +102,25 @@
         .round-display { font-size: 1.2rem; margin: 10px 0; }
         .session-score { display: flex; justify-content: space-around; margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 10px; }
         
+        .waiting-status {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            border-left: 4px solid var(--primary);
+        }
+        .waiting-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(0,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        
         .level-progress { background: rgba(0,0,0,0.5); border-radius: 10px; height: 20px; overflow: hidden; margin: 10px 0; }
         .level-progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); width: 0%; transition: width 0.5s; }
         
@@ -180,11 +199,29 @@
         }
         .notification.error { background: linear-gradient(135deg, #ff4b2b, #ff6b35); color: #fff; }
         .notification.success { background: linear-gradient(135deg, #00ff88, #2ecc71); color: #000; }
+        .notification.warning { background: linear-gradient(135deg, #ffaa00, #ff8c00); color: #000; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
         
         .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 0.8s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .disabled-move {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.3);
+        }
+        
+        .tap-to-play {
+            animation: pulse 1s ease-in-out infinite;
+            background: rgba(0,255,255,0.2);
+            border-radius: 20px;
+            padding: 10px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); box-shadow: 0 0 20px var(--primary); }
+        }
     </style>
 </head>
 <body class="theme-cyberpunk">
@@ -284,10 +321,29 @@
                             <input type="text" id="joinSessionCode" placeholder="SESSION CODE" style="flex: 1; text-transform: uppercase; text-align: center; font-size: 1.2rem; letter-spacing: 2px;">
                             <button id="joinSessionBtn" class="btn-secondary" style="flex: 1;">JOIN MATCH</button>
                         </div>
+                        
                         <div id="sessionInfo" class="hidden session-info">
                             <p>Your Match Code:</p>
                             <div class="session-code" id="sessionCodeDisplay">XXXXXX</div>
                             <button id="copyCodeBtn" class="btn-primary" style="margin-top: 10px;"><i class="fas fa-copy"></i> COPY CODE</button>
+                            
+                            <!-- Waiting for opponent status -->
+                            <div id="waitingForOpponent" class="waiting-status">
+                                <div class="waiting-spinner"></div>
+                                <p><i class="fas fa-clock"></i> Waiting for opponent to join...</p>
+                                <p style="font-size: 0.8rem; margin-top: 5px;">Share the code above with your friend</p>
+                            </div>
+                            
+                            <!-- Opponent joined notification -->
+                            <div id="opponentJoined" class="hidden" style="background: rgba(0,255,136,0.2); border-radius: 15px; padding: 15px; margin: 15px 0; text-align: center;">
+                                <i class="fas fa-check-circle" style="font-size: 2rem; color: #00ff88;"></i>
+                                <p><strong>Opponent Joined!</strong></p>
+                                <p id="opponentName">Player has joined the match</p>
+                                <div class="tap-to-play">
+                                    <i class="fas fa-hand-peace"></i> Tap to Play! <i class="fas fa-hand-fist"></i>
+                                </div>
+                            </div>
+                            
                             <div class="round-display" id="roundDisplay">Round 1 / 10</div>
                             <div class="session-score">
                                 <span>YOU: <strong id="sessionPlayer1Wins">0</strong></span>
@@ -295,8 +351,9 @@
                                 <span>OPPONENT: <strong id="sessionPlayer2Wins">0</strong></span>
                             </div>
                         </div>
+                        
                         <div id="multiGameArea" class="hidden">
-                            <div class="move-buttons">
+                            <div class="move-buttons" id="multiMoveButtons">
                                 <div class="move-card" data-session-move="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
                                 <div class="move-card" data-session-move="paper"><i class="fas fa-hand-peace"></i><div>PAPER</div></div>
                                 <div class="move-card" data-session-move="scissors"><i class="fas fa-hand-scissors"></i><div>SCISSORS</div></div>
@@ -401,6 +458,7 @@
         let tournaments = [];
         let currentTournament = null;
         let banCheckInterval = null;
+        let isOpponentJoined = false;
         
         // ============ SOCKET.IO ============
         const socket = io(BACKEND_URL, {
@@ -429,7 +487,7 @@
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
-            const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+            const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : (type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'));
             notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
@@ -439,41 +497,23 @@
         async function checkBanStatus() {
             const token = localStorage.getItem('token');
             if (!token) return true;
-            
             try {
                 const response = await fetch(`${BACKEND_URL}/api/user/status`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
-                if (response.status === 401 || response.status === 403) {
-                    return true;
-                }
-                
+                if (response.status === 401 || response.status === 403) return true;
                 const data = await response.json();
-                
                 if (data.is_banned) {
                     localStorage.removeItem('token');
-                    localStorage.removeItem('userData');
                     currentUser = null;
-                    
                     document.getElementById('loginSection').classList.remove('hidden');
                     document.getElementById('gameApp').classList.add('hidden');
-                    document.getElementById('loginMessage').innerHTML = `
-                        <div class="error-msg" style="background: rgba(255,75,43,0.2); border: 2px solid #ff4b2b; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center;">
-                            <i class="fas fa-ban" style="font-size: 3rem; color: #ff4b2b; margin-bottom: 10px;"></i>
-                            <h3 style="color: #ff4b2b;">ACCOUNT BANNED</h3>
-                            <p>Your account has been banned by an administrator.</p>
-                            <p style="font-size: 0.8rem; margin-top: 10px;">Contact support for more information.</p>
-                        </div>
-                    `;
+                    document.getElementById('loginMessage').innerHTML = `<div class="error-msg" style="background: rgba(255,75,43,0.2); border: 2px solid #ff4b2b; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center;"><i class="fas fa-ban" style="font-size: 3rem; color: #ff4b2b; margin-bottom: 10px;"></i><h3 style="color: #ff4b2b;">ACCOUNT BANNED</h3><p>Your account has been banned by an administrator.</p></div>`;
                     if (banCheckInterval) clearInterval(banCheckInterval);
                     return false;
                 }
                 return true;
-            } catch (error) {
-                console.error('Ban check error:', error);
-                return true;
-            }
+            } catch (error) { return true; }
         }
         
         // ============ THEMES ============
@@ -589,7 +629,6 @@
                     loadProfileStats();
                     socket.emit('user-online', { userId: currentUser.id, username: currentUser.username });
                     showNotification(`Welcome back, ${currentUser.username}!`, 'success');
-                    
                     if (banCheckInterval) clearInterval(banCheckInterval);
                     banCheckInterval = setInterval(() => { if (currentUser) checkBanStatus(); }, 30000);
                 } else {
@@ -706,20 +745,61 @@
         // ============ MULTIPLAYER FUNCTIONS ============
         function generateSessionCode() { return Math.random().toString(36).substring(2, 10).toUpperCase(); }
         
+        // Disable move buttons until opponent joins
+        function setMoveButtonsEnabled(enabled) {
+            const moveButtons = document.querySelectorAll('[data-session-move]');
+            moveButtons.forEach(btn => {
+                if (enabled) {
+                    btn.classList.remove('disabled-move');
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                } else {
+                    btn.classList.add('disabled-move');
+                    btn.style.pointerEvents = 'none';
+                    btn.style.opacity = '0.5';
+                }
+            });
+        }
+        
         function createSession() {
             playClickSound();
             if (!currentUser) { showNotification('Please login first', 'error'); return; }
+            
+            // Reset opponent joined flag
+            isOpponentJoined = false;
+            
             const sessionCode = generateSessionCode();
             currentSession = sessionCode;
             currentRound = 1;
-            activeSessions[sessionCode] = { code: sessionCode, creator: currentUser.username, creatorId: currentUser.id, players: [currentUser.username], rounds: [], player1Wins: 0, player2Wins: 0, ties: 0, currentRound: 1, totalRounds: 10, status: 'waiting' };
+            
+            activeSessions[sessionCode] = { 
+                code: sessionCode, 
+                creator: currentUser.username, 
+                creatorId: currentUser.id, 
+                players: [currentUser.username], 
+                rounds: [], 
+                player1Wins: 0, 
+                player2Wins: 0, 
+                ties: 0, 
+                currentRound: 1, 
+                totalRounds: 10, 
+                status: 'waiting' 
+            };
+            
             document.getElementById('sessionCodeDisplay').innerText = sessionCode;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
+            document.getElementById('waitingForOpponent').classList.remove('hidden');
+            document.getElementById('opponentJoined').classList.add('hidden');
             document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Match created! Share code: ' + sessionCode + '</div>';
             showNotification(`Match created! Code: ${sessionCode}`, 'success');
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
+            
+            // Disable moves until opponent joins
+            setMoveButtonsEnabled(false);
+            
+            // Start polling for opponent
             startSessionPolling(sessionCode);
         }
         
@@ -727,22 +807,40 @@
             playClickSound();
             const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
             if (!code) { showNotification('Enter session code', 'error'); return; }
+            
             const session = activeSessions[code];
-            if (!session) { showNotification('Session not found', 'error'); return; }
-            if (session.players.includes(currentUser.username)) { showNotification('Already in session', 'error'); return; }
+            if (!session) { showNotification('Session not found. Make sure the creator created the match.', 'error'); return; }
+            if (session.players.includes(currentUser.username)) { showNotification('You are already in this session', 'error'); return; }
+            
             session.players.push(currentUser.username);
             session.player2 = currentUser.username;
             session.player2Id = currentUser.id;
             session.status = 'active';
+            
             currentSession = code;
             currentRound = 1;
+            isOpponentJoined = true;
+            
             document.getElementById('sessionCodeDisplay').innerText = code;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
-            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined match vs ' + session.creator + '!</div>';
-            showNotification(`Joined match against ${session.creator}!`, 'success');
+            
+            // Hide waiting, show opponent joined
+            document.getElementById('waitingForOpponent').classList.add('hidden');
+            document.getElementById('opponentJoined').classList.remove('hidden');
+            document.getElementById('opponentName').innerHTML = `<strong>${session.creator}</strong> is ready to play!`;
+            
+            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined match! Tap to play!</div>';
+            showNotification(`Joined match against ${session.creator}! Tap to play!`, 'success');
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
+            
+            // Enable moves since opponent has joined
+            setMoveButtonsEnabled(true);
+            
+            // Notify the creator that opponent joined
+            showNotification(`✅ ${currentUser.username} joined the match! Start playing!`, 'success');
+            
             startSessionPolling(code);
         }
         
@@ -753,6 +851,17 @@
                 if (session && session.status === 'active') {
                     updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
                     document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
+                    
+                    // If opponent has joined, hide waiting and show opponent joined
+                    if (session.players.length >= 2 && !isOpponentJoined) {
+                        isOpponentJoined = true;
+                        document.getElementById('waitingForOpponent').classList.add('hidden');
+                        document.getElementById('opponentJoined').classList.remove('hidden');
+                        document.getElementById('opponentName').innerHTML = `<strong>${session.creator}</strong> is ready to play!`;
+                        setMoveButtonsEnabled(true);
+                        showNotification('🎮 Opponent has joined! Tap to play!', 'success');
+                    }
+                    
                     if (session.currentRound > session.totalRounds) {
                         clearInterval(sessionInterval);
                         const winner = session.player1Wins > session.player2Wins ? session.creator : (session.player2Wins > session.player1Wins ? session.player2 : 'Tie');
@@ -765,6 +874,7 @@
                         document.getElementById('multiStatus').innerHTML = 'Match complete!';
                         loadLeaderboard();
                         loadMatchHistory();
+                        isOpponentJoined = false;
                     }
                 }
             }, 2000);
@@ -773,25 +883,46 @@
         function makeSessionMove(move) {
             playClickSound();
             if (!currentSession) { showNotification('No active match', 'error'); return; }
+            
             const session = activeSessions[currentSession];
             if (!session) return;
+            
+            // Check if opponent has joined
+            if (session.players.length < 2) {
+                showNotification('Waiting for opponent to join...', 'warning');
+                return;
+            }
+            
             const moves = ['rock', 'paper', 'scissors'];
             const computerMove = moves[Math.floor(Math.random() * 3)];
             let roundWinner = null, roundLoser = null;
-            if (move === computerMove) { session.ties++; roundWinner = 'tie'; playDrawSound(); showNotification('Round tied!', 'info'); }
-            else if ((move === 'rock' && computerMove === 'scissors') || (move === 'paper' && computerMove === 'rock') || (move === 'scissors' && computerMove === 'paper')) {
-                session.player1Wins++; roundWinner = currentUser.username; roundLoser = session.players.find(p => p !== currentUser.username) || 'Opponent'; playWinSound();
-                showNotification(`You won round ${session.currentRound}!`, 'success');
+            
+            if (move === computerMove) { 
+                session.ties++; 
+                roundWinner = 'tie'; 
+                playDrawSound(); 
+                showNotification('Round tied!', 'info');
+            } else if ((move === 'rock' && computerMove === 'scissors') || (move === 'paper' && computerMove === 'rock') || (move === 'scissors' && computerMove === 'paper')) {
+                session.player1Wins++; 
+                roundWinner = currentUser.username; 
+                roundLoser = session.players.find(p => p !== currentUser.username) || 'Opponent'; 
+                playWinSound();
+                showNotification(`🎉 You won round ${session.currentRound}!`, 'success');
             } else {
-                session.player2Wins++; roundWinner = session.players.find(p => p !== currentUser.username) || 'Opponent'; roundLoser = currentUser.username; playLoseSound();
-                showNotification(`You lost round ${session.currentRound}!`, 'error');
+                session.player2Wins++; 
+                roundWinner = session.players.find(p => p !== currentUser.username) || 'Opponent'; 
+                roundLoser = currentUser.username; 
+                playLoseSound();
+                showNotification(`😢 You lost round ${session.currentRound}!`, 'error');
             }
+            
             session.rounds.push({ round: session.currentRound, playerMove: move, opponentMove: computerMove, winner: roundWinner, loser: roundLoser });
             showRoundPopup(roundWinner, roundLoser);
             updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
             session.currentRound++;
             document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
             document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Round ' + (session.currentRound - 1) + ' complete!</div>';
+            
             if (session.currentRound > session.totalRounds) {
                 const winner = session.player1Wins > session.player2Wins ? currentUser.username : (session.player2Wins > session.player1Wins ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : 'Tie');
                 const loser = winner === currentUser.username ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : currentUser.username;
@@ -804,6 +935,7 @@
                 loadLeaderboard();
                 loadMatchHistory();
                 if (sessionInterval) clearInterval(sessionInterval);
+                isOpponentJoined = false;
             }
         }
         
@@ -876,6 +1008,7 @@
             if (sessionInterval) clearInterval(sessionInterval);
             if (banCheckInterval) clearInterval(banCheckInterval);
             showNotification('Logged out successfully', 'success');
+            isOpponentJoined = false;
         }
         
         // ============ AVATAR UPDATE ============
@@ -892,9 +1025,6 @@
         
         // ============ SOCKET EVENTS ============
         socket.on('online-count', (data) => { document.getElementById('onlineCount').textContent = data.count; });
-        socket.on('match-created', (data) => { createSession(); });
-        socket.on('match-started', (data) => {});
-        socket.on('new-sticker', (data) => {});
         
         // ============ EVENT LISTENERS ============
         document.getElementById('loginBtn').onclick = () => login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
