@@ -27,6 +27,62 @@
         body { background: var(--bg); background-size: 400% 400%; animation: gradientShift 15s ease infinite; }
         @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         
+        /* Notification Toast */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .notification.error {
+            background: linear-gradient(135deg, #ff4b2b, #ff6b35);
+            color: #fff;
+        }
+        .notification.success {
+            background: linear-gradient(135deg, #00ff88, #2ecc71);
+            color: #000;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+        
+        /* Computer Thinking Animation */
+        .thinking-animation {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-left: 10px;
+        }
+        .computer-thinking {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        .computer-move-icon {
+            font-size: 4rem;
+            transition: all 0.3s;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        
         .glass { background: rgba(10, 10, 20, 0.75); backdrop-filter: blur(12px); border-radius: 24px; padding: 25px; margin-bottom: 20px; border: 1px solid var(--primary); transition: all 0.3s ease; }
         .glass:hover { box-shadow: 0 0 20px var(--primary); }
         
@@ -96,36 +152,12 @@
             margin: 15px 0;
             text-align: center;
         }
-        .session-code {
-            font-size: 2rem;
-            font-weight: bold;
-            letter-spacing: 5px;
-            color: var(--primary);
-            font-family: monospace;
-        }
+        .session-code { font-size: 2rem; font-weight: bold; letter-spacing: 5px; color: var(--primary); font-family: monospace; }
         .round-display { font-size: 1.2rem; margin: 10px 0; }
-        .session-score {
-            display: flex;
-            justify-content: space-around;
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-        }
+        .session-score { display: flex; justify-content: space-around; margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 10px; }
         
-        .level-progress {
-            background: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            height: 20px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        .level-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            width: 0%;
-            transition: width 0.5s;
-        }
+        .level-progress { background: rgba(0,0,0,0.5); border-radius: 10px; height: 20px; overflow: hidden; margin: 10px 0; }
+        .level-progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); width: 0%; transition: width 0.5s; }
         
         .login-container { max-width: 500px; margin: 80px auto; }
         .input-group { position: relative; margin-bottom: 20px; }
@@ -164,51 +196,27 @@
         .avatar-option.selected { border-color: gold; background: var(--primary); }
         .avatar-option.selected i { color: #000; }
         
-        .tournament-bracket {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            overflow-x: auto;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .bracket-match {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--primary);
-            border-radius: 10px;
-            padding: 15px;
-            min-width: 200px;
-            margin-bottom: 20px;
-        }
-        .bracket-player {
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 5px;
-        }
-        .bracket-player.winner {
-            background: rgba(0,255,255,0.3);
-            color: cyan;
-        }
+        .tournament-bracket { display: flex; justify-content: center; gap: 40px; overflow-x: auto; padding: 20px; margin-top: 20px; }
+        .bracket-match { background: rgba(0,0,0,0.6); border: 1px solid var(--primary); border-radius: 10px; padding: 15px; min-width: 200px; margin-bottom: 20px; }
+        .bracket-player { padding: 8px; margin: 5px 0; border-radius: 5px; }
+        .bracket-player.winner { background: rgba(0,255,255,0.3); color: cyan; }
         
-        .tab-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--primary);
-            padding-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        .tab {
-            padding: 8px 20px;
-            cursor: pointer;
-            border-radius: 20px;
-            transition: all 0.2s;
-        }
+        .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--primary); padding-bottom: 10px; flex-wrap: wrap; }
+        .tab { padding: 8px 20px; cursor: pointer; border-radius: 20px; transition: all 0.2s; }
         .tab:hover { background: rgba(0,255,255,0.2); }
         .tab.active { background: var(--primary); color: #000; }
         
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        
+        .computer-thinking-area {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .computer-move-icon { font-size: 4rem; transition: all 0.3s; }
     </style>
 </head>
 <body class="theme-cyberpunk">
@@ -279,6 +287,13 @@
                         <select id="difficultySelect" style="width: 100%; margin-bottom: 20px;">
                             <option value="easy">EASY</option><option value="medium">MEDIUM</option><option value="hard">HARD</option>
                         </select>
+                        
+                        <!-- Computer Thinking Area -->
+                        <div id="computerThinkingArea" class="computer-thinking-area">
+                            <div id="computerMoveIcon" class="computer-move-icon">🤖</div>
+                            <div id="computerThinkingText">Click a move to start</div>
+                        </div>
+                        
                         <div class="move-buttons">
                             <div class="move-card" data-move="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
                             <div class="move-card" data-move="paper"><i class="fas fa-hand-peace"></i><div>PAPER</div></div>
@@ -431,6 +446,17 @@
         let tournaments = [];
         let currentTournament = null;
         
+        // ============ NOTIFICATION FUNCTION ============
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle')}"></i> ${message}`;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
         // ============ AUDIO FUNCTIONS ============
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep(frequency, duration, volume) {
@@ -450,7 +476,7 @@
         
         // ============ THEMES ============
         const themes = { cyberpunk:'Cyberpunk', fire:'Fire', ice:'Ice', nature:'Nature', space:'Space', gold:'Gold' };
-        function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); }
+        function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); showNotification(`Theme changed to ${themes[themeId]}!`, 'success'); }
         function loadThemes() {
             const container = document.getElementById('themeSelector');
             const html = Object.entries(themes).map(([id, name]) => `<div class="theme-option" data-theme="${id}" style="background: linear-gradient(135deg, var(--primary), var(--secondary));"><i class="fas fa-palette"></i><span>${name}</span></div>`).join('');
@@ -476,7 +502,34 @@
                     <button class="buy-powerup">BUY</button>
                 </div>
             `).join('');
-            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); alert(`Bought ${powerUps[i].name}!`); }; });
+            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); showNotification(`Bought ${powerUps[i].name}!`, 'success'); }; });
+        }
+        
+        // ============ COMPUTER THINKING ANIMATION ============
+        function showComputerThinking() {
+            const thinkingArea = document.getElementById('computerThinkingArea');
+            const thinkingText = document.getElementById('computerThinkingText');
+            const moveIcon = document.getElementById('computerMoveIcon');
+            
+            thinkingArea.style.animation = 'pulse 0.5s ease-in-out';
+            thinkingText.innerHTML = 'Computer is thinking <span class="thinking-animation"></span>';
+            moveIcon.innerHTML = '🤔';
+        }
+        
+        function showComputerMove(move) {
+            const moveIcon = document.getElementById('computerMoveIcon');
+            const thinkingText = document.getElementById('computerThinkingText');
+            const moveIcons = { rock: '✊', paper: '📄', scissors: '✌️' };
+            const moveNames = { rock: 'ROCK', paper: 'PAPER', scissors: 'SCISSORS' };
+            
+            moveIcon.innerHTML = moveIcons[move];
+            thinkingText.innerHTML = `Computer chose ${moveNames[move]}!`;
+            
+            setTimeout(() => {
+                thinkingText.innerHTML = 'Click a move to play';
+                moveIcon.innerHTML = '🤖';
+                thinkingArea.style.animation = '';
+            }, 1500);
         }
         
         // ============ UI HELPERS ============
@@ -522,6 +575,7 @@
         // ============ API CALLS ============
         async function login(username, password) {
             playClickSound();
+            showNotification('Logging in...', 'info');
             try {
                 const res = await fetch(`${BACKEND_URL}/api/login`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -542,18 +596,19 @@
                     loadLeaderboard();
                     loadMatchHistory();
                     loadProfileStats();
+                    showNotification(`Welcome back, ${currentUser.username}! Login successful!`, 'success');
                 } else {
-                    document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`;
+                    showNotification(data.error || 'Login failed', 'error');
                 }
             } catch (error) {
-                document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Connection error</div>';
+                showNotification('Connection error. Please try again.', 'error');
             }
         }
         
         async function register(username, email, password, confirmPassword) {
             playClickSound();
-            if (!username || !email || !password) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Please fill all fields</div>'; return; }
-            if (password !== confirmPassword) { document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Passwords do not match</div>'; return; }
+            if (!username || !email || !password) { showNotification('Please fill all fields', 'error'); return; }
+            if (password !== confirmPassword) { showNotification('Passwords do not match', 'error'); return; }
             try {
                 const res = await fetch(`${BACKEND_URL}/api/register`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -561,14 +616,14 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    document.getElementById('loginMessage').innerHTML = '<div class="success-msg">Registration successful! Please login.</div>';
+                    showNotification('Registration successful! Please login.', 'success');
                     document.getElementById('registerForm').style.display = 'none';
                     document.getElementById('loginForm').style.display = 'block';
                 } else {
-                    document.getElementById('loginMessage').innerHTML = `<div class="error-msg">${data.error}</div>`;
+                    showNotification(data.error || 'Registration failed', 'error');
                 }
             } catch (error) {
-                document.getElementById('loginMessage').innerHTML = '<div class="error-msg">Registration failed</div>';
+                showNotification('Registration failed. Please try again.', 'error');
             }
         }
         
@@ -625,6 +680,11 @@
         async function playVsComputer(move) {
             const token = localStorage.getItem('token');
             const difficulty = document.getElementById('difficultySelect').value;
+            
+            // Show thinking animation
+            showComputerThinking();
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
             try {
                 const res = await fetch(`${BACKEND_URL}/api/game/computer`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -632,19 +692,25 @@
                 });
                 const data = await res.json();
                 
+                // Show computer's move
+                showComputerMove(data.computerMove);
+                
                 let resultText = `You: ${data.playerMove} | CPU: ${data.computerMove} → `;
                 if (data.result === 'win') {
                     resultText += 'VICTORY!';
                     userScore++;
                     playWinSound();
+                    showNotification('You won! +50 coins', 'success');
                     updateLevelProgress((currentUser?.total_wins || 0) + 1);
                 } else if (data.result === 'lose') {
                     resultText += 'DEFEAT!';
                     computerScore++;
                     playLoseSound();
+                    showNotification('You lost! +10 participation coins', 'info');
                 } else {
                     resultText += 'DRAW!';
                     playDrawSound();
+                    showNotification('It\'s a draw! +10 coins', 'info');
                 }
                 
                 document.getElementById('computerResult').innerHTML = resultText;
@@ -666,7 +732,7 @@
         
         function createSession() {
             playClickSound();
-            if (!currentUser) { alert('Please login first'); return; }
+            if (!currentUser) { showNotification('Please login first', 'error'); return; }
             
             const sessionCode = generateSessionCode();
             currentSession = sessionCode;
@@ -682,6 +748,7 @@
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
             document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Match created! Share code: ' + sessionCode + '</div>';
+            showNotification(`Match created! Code: ${sessionCode}`, 'success');
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
             startSessionPolling(sessionCode);
@@ -690,11 +757,11 @@
         function joinSession() {
             playClickSound();
             const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
-            if (!code) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Enter session code</div>'; return; }
+            if (!code) { showNotification('Enter session code', 'error'); return; }
             
             const session = activeSessions[code];
-            if (!session) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Session not found</div>'; return; }
-            if (session.players.includes(currentUser.username)) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">Already in session</div>'; return; }
+            if (!session) { showNotification('Session not found', 'error'); return; }
+            if (session.players.includes(currentUser.username)) { showNotification('Already in session', 'error'); return; }
             
             session.players.push(currentUser.username);
             session.player2 = currentUser.username;
@@ -708,6 +775,7 @@
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
             document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined match vs ' + session.creator + '!</div>';
+            showNotification(`Joined match against ${session.creator}!`, 'success');
             updateSessionScore(0, 0, 0);
             document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
             startSessionPolling(code);
@@ -726,6 +794,7 @@
                         const winner = session.player1Wins > session.player2Wins ? session.creator : (session.player2Wins > session.player1Wins ? session.player2 : 'Tie');
                         const loser = winner === session.creator ? session.player2 : session.creator;
                         showSessionCompletePopup(winner, loser, `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`, 100);
+                        showNotification(`${winner} wins the match!`, 'success');
                         currentSession = null;
                         document.getElementById('sessionInfo').classList.add('hidden');
                         document.getElementById('multiGameArea').classList.add('hidden');
@@ -739,7 +808,7 @@
         
         function makeSessionMove(move) {
             playClickSound();
-            if (!currentSession) { document.getElementById('multiStatus').innerHTML = '<div class="error-msg">No active match</div>'; return; }
+            if (!currentSession) { showNotification('No active match', 'error'); return; }
             
             const session = activeSessions[currentSession];
             if (!session) return;
@@ -750,10 +819,13 @@
             
             if (move === computerMove) {
                 session.ties++; roundWinner = 'tie'; playDrawSound();
+                showNotification('Round tied!', 'info');
             } else if ((move === 'rock' && computerMove === 'scissors') || (move === 'paper' && computerMove === 'rock') || (move === 'scissors' && computerMove === 'paper')) {
                 session.player1Wins++; roundWinner = currentUser.username; roundLoser = session.players.find(p => p !== currentUser.username) || 'Opponent'; playWinSound();
+                showNotification(`You won round ${session.currentRound}!`, 'success');
             } else {
                 session.player2Wins++; roundWinner = session.players.find(p => p !== currentUser.username) || 'Opponent'; roundLoser = currentUser.username; playLoseSound();
+                showNotification(`You lost round ${session.currentRound}!`, 'error');
             }
             
             session.rounds.push({ round: session.currentRound, playerMove: move, opponentMove: computerMove, winner: roundWinner, loser: roundLoser });
@@ -767,6 +839,7 @@
                 const winner = session.player1Wins > session.player2Wins ? currentUser.username : (session.player2Wins > session.player1Wins ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : 'Tie');
                 const loser = winner === currentUser.username ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : currentUser.username;
                 showSessionCompletePopup(winner, loser, `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`, 100);
+                showNotification(`${winner} wins the match!`, 'success');
                 currentSession = null;
                 document.getElementById('sessionInfo').classList.add('hidden');
                 document.getElementById('multiGameArea').classList.add('hidden');
@@ -780,33 +853,36 @@
         function copySessionCode() {
             const code = document.getElementById('sessionCodeDisplay').innerText;
             navigator.clipboard.writeText(code);
-            alert('Match code copied: ' + code);
+            showNotification('Match code copied!', 'success');
             playClickSound();
         }
         
         // ============ TOURNAMENT FUNCTIONS ============
         function createTournament() {
             playClickSound();
-            if (!currentUser) { alert('Please login first'); return; }
+            if (!currentUser) { showNotification('Please login first', 'error'); return; }
             const tournamentCode = Math.random().toString(36).substring(2, 8).toUpperCase();
             tournaments.push({ code: tournamentCode, host: currentUser.username, players: [currentUser.username], status: 'waiting' });
             currentTournament = tournamentCode;
             document.getElementById('tournamentStatus').innerHTML = `<div class="success-msg">Tournament created! Code: ${tournamentCode}. Share with friends!</div>`;
+            showNotification(`Tournament created! Code: ${tournamentCode}`, 'success');
             updateTournamentBracket();
         }
         
         function joinTournament() {
             playClickSound();
             const code = document.getElementById('joinTournamentCode').value.trim().toUpperCase();
-            if (!code) { document.getElementById('tournamentStatus').innerHTML = '<div class="error-msg">Enter tournament code</div>'; return; }
+            if (!code) { showNotification('Enter tournament code', 'error'); return; }
             const tournament = tournaments.find(t => t.code === code);
-            if (!tournament) { document.getElementById('tournamentStatus').innerHTML = '<div class="error-msg">Tournament not found</div>'; return; }
-            if (tournament.players.includes(currentUser.username)) { document.getElementById('tournamentStatus').innerHTML = '<div class="error-msg">Already joined</div>'; return; }
+            if (!tournament) { showNotification('Tournament not found', 'error'); return; }
+            if (tournament.players.includes(currentUser.username)) { showNotification('Already joined', 'error'); return; }
             tournament.players.push(currentUser.username);
             document.getElementById('tournamentStatus').innerHTML = `<div class="success-msg">Joined tournament! ${tournament.players.length}/8 players</div>`;
+            showNotification(`Joined tournament! ${tournament.players.length}/8 players`, 'success');
             if (tournament.players.length === 8) {
                 tournament.status = 'active';
                 document.getElementById('tournamentStatus').innerHTML = '<div class="success-msg">Tournament full! Starting bracket...</div>';
+                showNotification('Tournament is full! Bracket starting!', 'success');
             }
             updateTournamentBracket();
         }
@@ -858,6 +934,7 @@
             document.getElementById('userScore').textContent = '0';
             document.getElementById('computerScore').textContent = '0';
             if (sessionInterval) clearInterval(sessionInterval);
+            showNotification('Logged out successfully', 'success');
         }
         
         // ============ AVATAR UPDATE ============
@@ -868,6 +945,7 @@
                 body: JSON.stringify({ avatar })
             });
             document.getElementById('avatarIcon').className = `fas fa-user-${avatar}`;
+            showNotification(`Avatar changed to ${avatar}!`, 'success');
             playClickSound();
         }
         
