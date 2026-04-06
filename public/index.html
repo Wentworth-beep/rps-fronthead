@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>RPS CYBER ARENA | Kirinyaga University</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0c' rx='20'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%2300f2ff'/%3E%3Crect x='35' y='55' width='30' height='25' fill='%2300f2ff' rx='5'/%3E%3Ctext x='50' y='75' font-size='25' text-anchor='middle' fill='%23000'%3E🥷%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0c' rx='20'/%3E%3Ccircle cx='50' cy='45' r='22' fill='%23ff4b2b'/%3E%3Ctext x='50' y='75' font-size='28' text-anchor='middle' fill='%23000'%3E🐉%3C/text%3E%3C/svg%3E">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -27,62 +28,6 @@
         
         body { background: var(--bg); background-size: 400% 400%; animation: gradientShift 15s ease infinite; }
         @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        
-        /* Notification Toast */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #000;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: bold;
-            z-index: 2000;
-            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        }
-        .notification.error {
-            background: linear-gradient(135deg, #ff4b2b, #ff6b35);
-            color: #fff;
-        }
-        .notification.success {
-            background: linear-gradient(135deg, #00ff88, #2ecc71);
-            color: #000;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes fadeOut {
-            to { opacity: 0; visibility: hidden; }
-        }
-        
-        /* Computer Thinking Animation */
-        .thinking-animation {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-            margin-left: 10px;
-        }
-        .computer-thinking {
-            background: rgba(0,0,0,0.5);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            margin: 20px 0;
-            animation: pulse 1s ease-in-out infinite;
-        }
-        .computer-move-icon {
-            font-size: 4rem;
-            transition: all 0.3s;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
         
         .glass { background: rgba(10, 10, 20, 0.75); backdrop-filter: blur(12px); border-radius: 24px; padding: 25px; margin-bottom: 20px; border: 1px solid var(--primary); transition: all 0.3s ease; }
         .glass:hover { box-shadow: 0 0 20px var(--primary); }
@@ -171,8 +116,8 @@
         .btn-secondary { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         
         .hidden { display: none; }
-        .error-msg { color: #ff6b6b; padding: 10px; text-align: center; }
-        .success-msg { color: #51cf66; padding: 10px; text-align: center; }
+        .error-msg { color: #ff6b6b; padding: 10px; text-align: center; background: rgba(255,107,107,0.1); border-radius: 10px; }
+        .success-msg { color: #51cf66; padding: 10px; text-align: center; background: rgba(81,207,102,0.1); border-radius: 10px; }
         
         .leaderboard-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(0,255,255,0.2); align-items: center; }
         .leaderboard-rank { font-size: 1.2rem; font-weight: bold; color: var(--primary); width: 50px; }
@@ -218,6 +163,28 @@
             margin: 20px 0;
         }
         .computer-move-icon { font-size: 4rem; transition: all 0.3s; }
+        .thinking-animation { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: spin 0.6s linear infinite; margin-left: 10px; }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .notification.error { background: linear-gradient(135deg, #ff4b2b, #ff6b35); color: #fff; }
+        .notification.success { background: linear-gradient(135deg, #00ff88, #2ecc71); color: #000; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+        
+        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 0.8s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="theme-cyberpunk">
@@ -265,9 +232,7 @@
             <div class="glass">
                 <div class="section-title"><i class="fas fa-chart-line"></i> LEVEL PROGRESSION</div>
                 <div>Level <span id="currentLevel">1</span> → <span id="nextLevel">2</span></div>
-                <div class="level-progress">
-                    <div class="level-progress-bar" id="levelProgressBar"></div>
-                </div>
+                <div class="level-progress"><div class="level-progress-bar" id="levelProgressBar"></div></div>
                 <div id="winsNeededText" style="text-align: center; font-size: 0.8rem;"></div>
             </div>
 
@@ -288,13 +253,10 @@
                         <select id="difficultySelect" style="width: 100%; margin-bottom: 20px;">
                             <option value="easy">EASY</option><option value="medium">MEDIUM</option><option value="hard">HARD</option>
                         </select>
-                        
-                        <!-- Computer Thinking Area -->
-                        <div id="computerThinkingArea" class="computer-thinking-area">
+                        <div class="computer-thinking-area">
                             <div id="computerMoveIcon" class="computer-move-icon">🤖</div>
                             <div id="computerThinkingText">Click a move to start</div>
                         </div>
-                        
                         <div class="move-buttons">
                             <div class="move-card" data-move="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
                             <div class="move-card" data-move="paper"><i class="fas fa-hand-peace"></i><div>PAPER</div></div>
@@ -317,17 +279,15 @@
                 <div class="game-grid">
                     <div class="glass">
                         <div class="section-title"><i class="fas fa-wifi"></i> 10-ROUND MULTIPLAYER</div>
-                        
                         <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                             <button id="createSessionBtn" class="btn-primary" style="flex: 1;">CREATE MATCH</button>
                             <input type="text" id="joinSessionCode" placeholder="SESSION CODE" style="flex: 1; text-transform: uppercase; text-align: center; font-size: 1.2rem; letter-spacing: 2px;">
                             <button id="joinSessionBtn" class="btn-secondary" style="flex: 1;">JOIN MATCH</button>
                         </div>
-                        
                         <div id="sessionInfo" class="hidden session-info">
                             <p>Your Match Code:</p>
                             <div class="session-code" id="sessionCodeDisplay">XXXXXX</div>
-                            <button id="copyCodeBtn" class="btn-primary" style="margin-top: 10px; padding: 8px 16px;"><i class="fas fa-copy"></i> COPY CODE</button>
+                            <button id="copyCodeBtn" class="btn-primary" style="margin-top: 10px;"><i class="fas fa-copy"></i> COPY CODE</button>
                             <div class="round-display" id="roundDisplay">Round 1 / 10</div>
                             <div class="session-score">
                                 <span>YOU: <strong id="sessionPlayer1Wins">0</strong></span>
@@ -335,7 +295,6 @@
                                 <span>OPPONENT: <strong id="sessionPlayer2Wins">0</strong></span>
                             </div>
                         </div>
-                        
                         <div id="multiGameArea" class="hidden">
                             <div class="move-buttons">
                                 <div class="move-card" data-session-move="rock"><i class="fas fa-hand-fist"></i><div>ROCK</div></div>
@@ -343,10 +302,8 @@
                                 <div class="move-card" data-session-move="scissors"><i class="fas fa-hand-scissors"></i><div>SCISSORS</div></div>
                             </div>
                         </div>
-                        
                         <div id="multiStatus" class="result">No active match</div>
                     </div>
-                    
                     <div class="glass">
                         <div class="section-title"><i class="fas fa-trophy"></i> LEADERBOARD</div>
                         <div id="leaderboardList2" style="max-height: 300px; overflow-y: auto;"></div>
@@ -413,28 +370,25 @@
         </div>
     </div>
 
-    <!-- Round Result Popup -->
-    <div id="roundPopup" class="popup hidden">
-        <div class="popup-content">
-            <h2>ROUND COMPLETE!</h2>
-            <p>Winner: <strong id="roundWinner"></strong></p>
-            <p>Loser: <strong id="roundLoser"></strong></p>
-        </div>
-    </div>
+    <!-- Popups -->
+    <div id="roundPopup" class="popup hidden"><div class="popup-content"><h2>ROUND COMPLETE!</h2><p>Winner: <strong id="roundWinner"></strong></p><p>Loser: <strong id="roundLoser"></strong></p></div></div>
+    <div id="sessionCompletePopup" class="popup hidden"><div class="popup-content"><h2>MATCH COMPLETE!</h2><p>Winner: <strong id="sessionWinner"></strong></p><p>Loser: <strong id="sessionLoser"></strong></p><p>Final Score: <strong id="sessionFinalScore"></strong></p><p>Coins Earned: <strong id="sessionCoinsEarned">0</strong></p></div></div>
 
-    <!-- Session Complete Popup -->
-    <div id="sessionCompletePopup" class="popup hidden">
-        <div class="popup-content">
-            <h2>MATCH COMPLETE!</h2>
-            <p>Winner: <strong id="sessionWinner"></strong></p>
-            <p>Loser: <strong id="sessionLoser"></strong></p>
-            <p>Final Score: <strong id="sessionFinalScore"></strong></p>
-            <p>Coins Earned: <strong id="sessionCoinsEarned">0</strong></p>
-        </div>
+    <!-- Profile Modal -->
+    <div id="profileModal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px;">
+        <div class="glass"><div class="section-title">CUSTOMIZE AVATAR</div><div class="avatar-selector">
+            <div class="avatar-option" data-avatar="ninja"><i class="fas fa-user-ninja"></i></div>
+            <div class="avatar-option" data-avatar="robot"><i class="fas fa-robot"></i></div>
+            <div class="avatar-option" data-avatar="dragon"><i class="fas fa-dragon"></i></div>
+            <div class="avatar-option" data-avatar="wizard"><i class="fas fa-hat-wizard"></i></div>
+            <div class="avatar-option" data-avatar="ghost"><i class="fas fa-ghost"></i></div>
+            <div class="avatar-option" data-avatar="skull"><i class="fas fa-skull"></i></div>
+            <div class="avatar-option" data-avatar="crown"><i class="fas fa-crown"></i></div>
+        </div><button id="closeProfileModal" style="width: 100%; margin-top: 15px;">CLOSE</button></div>
     </div>
 
     <script>
-        // ============ BACKEND URL ============
+        // ============ CONFIGURATION ============
         const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
         
         // ============ GLOBAL VARIABLES ============
@@ -446,17 +400,13 @@
         let sessionInterval = null;
         let tournaments = [];
         let currentTournament = null;
+        let banCheckInterval = null;
         
-        // ============ NOTIFICATION FUNCTION ============
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle')}"></i> ${message}`;
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
+        // ============ SOCKET.IO ============
+        const socket = io(BACKEND_URL, {
+            transports: ['websocket', 'polling'],
+            withCredentials: true
+        });
         
         // ============ AUDIO FUNCTIONS ============
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -475,9 +425,60 @@
         function playDrawSound() { playBeep(587.33,200,0.2); setTimeout(()=>playBeep(587.33,200,0.2),250); }
         function playClickSound() { playBeep(800,50,0.1); }
         
+        // ============ NOTIFICATION FUNCTION ============
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+            notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+        
+        // ============ BAN CHECK FUNCTION ============
+        async function checkBanStatus() {
+            const token = localStorage.getItem('token');
+            if (!token) return true;
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user/status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    return true;
+                }
+                
+                const data = await response.json();
+                
+                if (data.is_banned) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userData');
+                    currentUser = null;
+                    
+                    document.getElementById('loginSection').classList.remove('hidden');
+                    document.getElementById('gameApp').classList.add('hidden');
+                    document.getElementById('loginMessage').innerHTML = `
+                        <div class="error-msg" style="background: rgba(255,75,43,0.2); border: 2px solid #ff4b2b; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center;">
+                            <i class="fas fa-ban" style="font-size: 3rem; color: #ff4b2b; margin-bottom: 10px;"></i>
+                            <h3 style="color: #ff4b2b;">ACCOUNT BANNED</h3>
+                            <p>Your account has been banned by an administrator.</p>
+                            <p style="font-size: 0.8rem; margin-top: 10px;">Contact support for more information.</p>
+                        </div>
+                    `;
+                    if (banCheckInterval) clearInterval(banCheckInterval);
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Ban check error:', error);
+                return true;
+            }
+        }
+        
         // ============ THEMES ============
         const themes = { cyberpunk:'Cyberpunk', fire:'Fire', ice:'Ice', nature:'Nature', space:'Space', gold:'Gold' };
-        function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); showNotification(`Theme changed to ${themes[themeId]}!`, 'success'); }
+        function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); }
         function loadThemes() {
             const container = document.getElementById('themeSelector');
             const html = Object.entries(themes).map(([id, name]) => `<div class="theme-option" data-theme="${id}" style="background: linear-gradient(135deg, var(--primary), var(--secondary));"><i class="fas fa-palette"></i><span>${name}</span></div>`).join('');
@@ -494,43 +495,8 @@
         ];
         function loadPowerups() {
             const container = document.getElementById('powerupShop');
-            container.innerHTML = powerUps.map(p => `
-                <div class="powerup-card" data-powerup="${p.id}">
-                    <i class="fas ${p.icon}"></i>
-                    <div><strong>${p.name}</strong></div>
-                    <div style="font-size:0.8rem;">${p.description}</div>
-                    <div style="color:gold; margin:5px 0;">${p.cost} coins</div>
-                    <button class="buy-powerup">BUY</button>
-                </div>
-            `).join('');
+            container.innerHTML = powerUps.map(p => `<div class="powerup-card" data-powerup="${p.id}"><i class="fas ${p.icon}"></i><div><strong>${p.name}</strong></div><div style="font-size:0.8rem;">${p.description}</div><div style="color:gold; margin:5px 0;">${p.cost} coins</div><button class="buy-powerup">BUY</button></div>`).join('');
             document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); showNotification(`Bought ${powerUps[i].name}!`, 'success'); }; });
-        }
-        
-        // ============ COMPUTER THINKING ANIMATION ============
-        function showComputerThinking() {
-            const thinkingArea = document.getElementById('computerThinkingArea');
-            const thinkingText = document.getElementById('computerThinkingText');
-            const moveIcon = document.getElementById('computerMoveIcon');
-            
-            thinkingArea.style.animation = 'pulse 0.5s ease-in-out';
-            thinkingText.innerHTML = 'Computer is thinking <span class="thinking-animation"></span>';
-            moveIcon.innerHTML = '🤔';
-        }
-        
-        function showComputerMove(move) {
-            const moveIcon = document.getElementById('computerMoveIcon');
-            const thinkingText = document.getElementById('computerThinkingText');
-            const moveIcons = { rock: '✊', paper: '📄', scissors: '✌️' };
-            const moveNames = { rock: 'ROCK', paper: 'PAPER', scissors: 'SCISSORS' };
-            
-            moveIcon.innerHTML = moveIcons[move];
-            thinkingText.innerHTML = `Computer chose ${moveNames[move]}!`;
-            
-            setTimeout(() => {
-                thinkingText.innerHTML = 'Click a move to play';
-                moveIcon.innerHTML = '🤖';
-                thinkingArea.style.animation = '';
-            }, 1500);
         }
         
         // ============ UI HELPERS ============
@@ -572,87 +538,26 @@
             document.getElementById('sessionPlayer2Wins').innerText = p2Wins;
             document.getElementById('sessionTies').innerText = ties;
         }
-        // Add this to your index.html script section
-
-// Check if user is banned on every page load/refresh
-async function checkBanStatus() {
-    const token = localStorage.getItem('token');
-    if (!token) return true; // Not logged in is fine
-    
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/user/status`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
         
-        const data = await response.json();
+        function showComputerThinking() {
+            const thinkingText = document.getElementById('computerThinkingText');
+            const moveIcon = document.getElementById('computerMoveIcon');
+            thinkingText.innerHTML = 'Computer is thinking <span class="thinking-animation"></span>';
+            moveIcon.innerHTML = '🤔';
+        }
         
-        if (data.is_banned) {
-            // User is banned - show message and logout
-            showNotification('Your account has been BANNED by an administrator. Please contact support.', 'error');
-            
-            // Clear local storage
-            localStorage.removeItem('token');
-            localStorage.removeItem('userData');
-            currentUser = null;
-            
-            // Show login screen with ban message
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('gameApp').classList.add('hidden');
-            document.getElementById('modeSelection').style.display = 'flex';
-            
-            // Display ban message on login screen
-            document.getElementById('loginMessage').innerHTML = `
-                <div class="error-msg" style="background: rgba(255,75,43,0.2); border: 1px solid #ff4b2b; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                    <i class="fas fa-ban"></i> 
-                    <strong>Account Banned!</strong><br>
-                    Your account has been banned by an administrator.<br>
-                    Contact support for more information.
-                </div>
-            `;
-            return false;
+        function showComputerMove(move) {
+            const moveIcon = document.getElementById('computerMoveIcon');
+            const thinkingText = document.getElementById('computerThinkingText');
+            const moveIcons = { rock: '✊', paper: '📄', scissors: '✌️' };
+            const moveNames = { rock: 'ROCK', paper: 'PAPER', scissors: 'SCISSORS' };
+            moveIcon.innerHTML = moveIcons[move];
+            thinkingText.innerHTML = `Computer chose ${moveNames[move]}!`;
+            setTimeout(() => {
+                thinkingText.innerHTML = 'Click a move to play';
+                moveIcon.innerHTML = '🤖';
+            }, 1500);
         }
-        return true;
-    } catch (error) {
-        console.error('Ban check error:', error);
-        return true;
-    }
-}
-
-// Modify your existing token check to include ban check
-const token = localStorage.getItem('token');
-if (token) {
-    // First verify token and check ban status
-    fetch(`${BACKEND_URL}/api/verify-token`, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
-    }).then(res => res.json()).then(async data => {
-        if (data.valid) {
-            // Check if user is banned
-            const notBanned = await checkBanStatus();
-            if (notBanned) {
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('gameApp').classList.remove('hidden');
-                loadLeaderboard();
-                loadMatchHistory();
-                loadProfileStats();
-                socket.emit('user-online', { userId: data.user.id, username: data.user.username });
-            }
-        }
-    });
-}
-
-// Also check ban status when coming back to tab (on focus)
-window.addEventListener('focus', () => {
-    if (currentUser) {
-        checkBanStatus();
-    }
-});
-
-// Check ban status periodically (every 30 seconds)
-setInterval(() => {
-    if (currentUser) {
-        checkBanStatus();
-    }
-}, 30000);
         
         // ============ API CALLS ============
         async function login(username, password) {
@@ -664,7 +569,11 @@ setInterval(() => {
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
-                if (res.ok) {
+                if (res.ok && data.success) {
+                    if (data.user.is_banned) {
+                        showNotification('Your account has been banned!', 'error');
+                        return;
+                    }
                     currentUser = data.user;
                     localStorage.setItem('token', data.token);
                     document.getElementById('loginSection').classList.add('hidden');
@@ -678,12 +587,16 @@ setInterval(() => {
                     loadLeaderboard();
                     loadMatchHistory();
                     loadProfileStats();
-                    showNotification(`Welcome back, ${currentUser.username}! Login successful!`, 'success');
+                    socket.emit('user-online', { userId: currentUser.id, username: currentUser.username });
+                    showNotification(`Welcome back, ${currentUser.username}!`, 'success');
+                    
+                    if (banCheckInterval) clearInterval(banCheckInterval);
+                    banCheckInterval = setInterval(() => { if (currentUser) checkBanStatus(); }, 30000);
                 } else {
                     showNotification(data.error || 'Login failed', 'error');
                 }
             } catch (error) {
-                showNotification('Connection error. Please try again.', 'error');
+                showNotification('Connection error', 'error');
             }
         }
         
@@ -691,21 +604,23 @@ setInterval(() => {
             playClickSound();
             if (!username || !email || !password) { showNotification('Please fill all fields', 'error'); return; }
             if (password !== confirmPassword) { showNotification('Passwords do not match', 'error'); return; }
+            if (password.length < 4) { showNotification('Password must be at least 4 characters', 'error'); return; }
             try {
                 const res = await fetch(`${BACKEND_URL}/api/register`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
                 const data = await res.json();
-                if (res.ok) {
+                if (res.ok && data.success) {
                     showNotification('Registration successful! Please login.', 'success');
                     document.getElementById('registerForm').style.display = 'none';
                     document.getElementById('loginForm').style.display = 'block';
+                    document.getElementById('loginUsername').value = username;
                 } else {
                     showNotification(data.error || 'Registration failed', 'error');
                 }
             } catch (error) {
-                showNotification('Registration failed. Please try again.', 'error');
+                showNotification('Registration failed', 'error');
             }
         }
         
@@ -713,14 +628,7 @@ setInterval(() => {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/leaderboard`);
                 const leaders = await res.json();
-                const html = leaders.map(l => `
-                    <div class="leaderboard-item">
-                        <div class="leaderboard-rank">#${l.rank}</div>
-                        <div><i class="fas fa-user-${l.avatar || 'ninja'}"></i> ${l.username}</div>
-                        <div>${l.wins} wins</div>
-                        <div>${l.mmr} MMR</div>
-                    </div>
-                `).join('');
+                const html = leaders.map(l => `<div class="leaderboard-item"><div class="leaderboard-rank">#${l.rank}</div><div><i class="fas fa-user-${l.avatar || 'ninja'}"></i> ${l.username}</div><div>${l.wins} wins</div><div>${l.mmr} MMR</div></div>`).join('');
                 document.getElementById('leaderboardList').innerHTML = html;
                 document.getElementById('leaderboardList2').innerHTML = html;
             } catch(e) { console.log('Leaderboard error'); }
@@ -732,12 +640,7 @@ setInterval(() => {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/match-history`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const history = await res.json();
-                const html = history.slice(0, 10).map(h => `
-                    <div class="history-item ${h.result}">
-                        vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}
-                        <small style="display: block; font-size: 0.7rem; color: #888;">${new Date(h.timestamp).toLocaleTimeString()}</small>
-                    </div>
-                `).join('');
+                const html = history.slice(0, 10).map(h => `<div class="history-item ${h.result}">vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}<small style="display: block; font-size: 0.7rem; color: #888;">${new Date(h.timestamp).toLocaleTimeString()}</small></div>`).join('');
                 document.getElementById('matchHistory').innerHTML = html;
                 document.getElementById('matchHistory2').innerHTML = html;
             } catch(e) { console.log('History error'); }
@@ -762,21 +665,15 @@ setInterval(() => {
         async function playVsComputer(move) {
             const token = localStorage.getItem('token');
             const difficulty = document.getElementById('difficultySelect').value;
-            
-            // Show thinking animation
             showComputerThinking();
             await new Promise(resolve => setTimeout(resolve, 800));
-            
             try {
                 const res = await fetch(`${BACKEND_URL}/api/game/computer`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ playerMove: move, difficulty })
                 });
                 const data = await res.json();
-                
-                // Show computer's move
                 showComputerMove(data.computerMove);
-                
                 let resultText = `You: ${data.playerMove} | CPU: ${data.computerMove} → `;
                 if (data.result === 'win') {
                     resultText += 'VICTORY!';
@@ -794,7 +691,6 @@ setInterval(() => {
                     playDrawSound();
                     showNotification('It\'s a draw! +10 coins', 'info');
                 }
-                
                 document.getElementById('computerResult').innerHTML = resultText;
                 document.getElementById('userScore').textContent = userScore;
                 document.getElementById('computerScore').textContent = computerScore;
@@ -808,24 +704,15 @@ setInterval(() => {
         }
         
         // ============ MULTIPLAYER FUNCTIONS ============
-        function generateSessionCode() {
-            return Math.random().toString(36).substring(2, 10).toUpperCase();
-        }
+        function generateSessionCode() { return Math.random().toString(36).substring(2, 10).toUpperCase(); }
         
         function createSession() {
             playClickSound();
             if (!currentUser) { showNotification('Please login first', 'error'); return; }
-            
             const sessionCode = generateSessionCode();
             currentSession = sessionCode;
             currentRound = 1;
-            
-            activeSessions[sessionCode] = {
-                code: sessionCode, creator: currentUser.username, creatorId: currentUser.id,
-                players: [currentUser.username], rounds: [], player1Wins: 0, player2Wins: 0,
-                ties: 0, currentRound: 1, totalRounds: 10, status: 'waiting'
-            };
-            
+            activeSessions[sessionCode] = { code: sessionCode, creator: currentUser.username, creatorId: currentUser.id, players: [currentUser.username], rounds: [], player1Wins: 0, player2Wins: 0, ties: 0, currentRound: 1, totalRounds: 10, status: 'waiting' };
             document.getElementById('sessionCodeDisplay').innerText = sessionCode;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
@@ -840,19 +727,15 @@ setInterval(() => {
             playClickSound();
             const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
             if (!code) { showNotification('Enter session code', 'error'); return; }
-            
             const session = activeSessions[code];
             if (!session) { showNotification('Session not found', 'error'); return; }
             if (session.players.includes(currentUser.username)) { showNotification('Already in session', 'error'); return; }
-            
             session.players.push(currentUser.username);
             session.player2 = currentUser.username;
             session.player2Id = currentUser.id;
             session.status = 'active';
-            
             currentSession = code;
             currentRound = 1;
-            
             document.getElementById('sessionCodeDisplay').innerText = code;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
@@ -870,7 +753,6 @@ setInterval(() => {
                 if (session && session.status === 'active') {
                     updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
                     document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
-                    
                     if (session.currentRound > session.totalRounds) {
                         clearInterval(sessionInterval);
                         const winner = session.player1Wins > session.player2Wins ? session.creator : (session.player2Wins > session.player1Wins ? session.player2 : 'Tie');
@@ -891,32 +773,25 @@ setInterval(() => {
         function makeSessionMove(move) {
             playClickSound();
             if (!currentSession) { showNotification('No active match', 'error'); return; }
-            
             const session = activeSessions[currentSession];
             if (!session) return;
-            
             const moves = ['rock', 'paper', 'scissors'];
             const computerMove = moves[Math.floor(Math.random() * 3)];
             let roundWinner = null, roundLoser = null;
-            
-            if (move === computerMove) {
-                session.ties++; roundWinner = 'tie'; playDrawSound();
-                showNotification('Round tied!', 'info');
-            } else if ((move === 'rock' && computerMove === 'scissors') || (move === 'paper' && computerMove === 'rock') || (move === 'scissors' && computerMove === 'paper')) {
+            if (move === computerMove) { session.ties++; roundWinner = 'tie'; playDrawSound(); showNotification('Round tied!', 'info'); }
+            else if ((move === 'rock' && computerMove === 'scissors') || (move === 'paper' && computerMove === 'rock') || (move === 'scissors' && computerMove === 'paper')) {
                 session.player1Wins++; roundWinner = currentUser.username; roundLoser = session.players.find(p => p !== currentUser.username) || 'Opponent'; playWinSound();
                 showNotification(`You won round ${session.currentRound}!`, 'success');
             } else {
                 session.player2Wins++; roundWinner = session.players.find(p => p !== currentUser.username) || 'Opponent'; roundLoser = currentUser.username; playLoseSound();
                 showNotification(`You lost round ${session.currentRound}!`, 'error');
             }
-            
             session.rounds.push({ round: session.currentRound, playerMove: move, opponentMove: computerMove, winner: roundWinner, loser: roundLoser });
             showRoundPopup(roundWinner, roundLoser);
             updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
             session.currentRound++;
             document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
             document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Round ' + (session.currentRound - 1) + ' complete!</div>';
-            
             if (session.currentRound > session.totalRounds) {
                 const winner = session.player1Wins > session.player2Wins ? currentUser.username : (session.player2Wins > session.player1Wins ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : 'Tie');
                 const loser = winner === currentUser.username ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : currentUser.username;
@@ -974,24 +849,7 @@ setInterval(() => {
             if (currentTournament) {
                 const tournament = tournaments.find(t => t.code === currentTournament);
                 if (tournament) {
-                    bracketDiv.innerHTML = `
-                        <div class="bracket-match">
-                            <div class="bracket-player ${tournament.players[0] ? 'winner' : ''}">${tournament.players[0] || 'Waiting...'}</div>
-                            <div class="bracket-player ${tournament.players[1] ? 'winner' : ''}">${tournament.players[1] || 'Waiting...'}</div>
-                        </div>
-                        <div class="bracket-match">
-                            <div class="bracket-player ${tournament.players[2] ? 'winner' : ''}">${tournament.players[2] || 'Waiting...'}</div>
-                            <div class="bracket-player ${tournament.players[3] ? 'winner' : ''}">${tournament.players[3] || 'Waiting...'}</div>
-                        </div>
-                        <div class="bracket-match">
-                            <div class="bracket-player ${tournament.players[4] ? 'winner' : ''}">${tournament.players[4] || 'Waiting...'}</div>
-                            <div class="bracket-player ${tournament.players[5] ? 'winner' : ''}">${tournament.players[5] || 'Waiting...'}</div>
-                        </div>
-                        <div class="bracket-match">
-                            <div class="bracket-player ${tournament.players[6] ? 'winner' : ''}">${tournament.players[6] || 'Waiting...'}</div>
-                            <div class="bracket-player ${tournament.players[7] ? 'winner' : ''}">${tournament.players[7] || 'Waiting...'}</div>
-                        </div>
-                    `;
+                    bracketDiv.innerHTML = `<div class="bracket-match"><div class="bracket-player ${tournament.players[0] ? 'winner' : ''}">${tournament.players[0] || 'Waiting...'}</div><div class="bracket-player ${tournament.players[1] ? 'winner' : ''}">${tournament.players[1] || 'Waiting...'}</div></div><div class="bracket-match"><div class="bracket-player ${tournament.players[2] ? 'winner' : ''}">${tournament.players[2] || 'Waiting...'}</div><div class="bracket-player ${tournament.players[3] ? 'winner' : ''}">${tournament.players[3] || 'Waiting...'}</div></div><div class="bracket-match"><div class="bracket-player ${tournament.players[4] ? 'winner' : ''}">${tournament.players[4] || 'Waiting...'}</div><div class="bracket-player ${tournament.players[5] ? 'winner' : ''}">${tournament.players[5] || 'Waiting...'}</div></div><div class="bracket-match"><div class="bracket-player ${tournament.players[6] ? 'winner' : ''}">${tournament.players[6] || 'Waiting...'}</div><div class="bracket-player ${tournament.players[7] ? 'winner' : ''}">${tournament.players[7] || 'Waiting...'}</div></div>`;
                 }
             } else {
                 bracketDiv.innerHTML = '<div style="text-align:center; padding:20px;">Create or join a tournament to see bracket</div>';
@@ -1016,6 +874,7 @@ setInterval(() => {
             document.getElementById('userScore').textContent = '0';
             document.getElementById('computerScore').textContent = '0';
             if (sessionInterval) clearInterval(sessionInterval);
+            if (banCheckInterval) clearInterval(banCheckInterval);
             showNotification('Logged out successfully', 'success');
         }
         
@@ -1031,6 +890,12 @@ setInterval(() => {
             playClickSound();
         }
         
+        // ============ SOCKET EVENTS ============
+        socket.on('online-count', (data) => { document.getElementById('onlineCount').textContent = data.count; });
+        socket.on('match-created', (data) => { createSession(); });
+        socket.on('match-started', (data) => {});
+        socket.on('new-sticker', (data) => {});
+        
         // ============ EVENT LISTENERS ============
         document.getElementById('loginBtn').onclick = () => login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
         document.getElementById('showRegisterBtn').onclick = () => { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; };
@@ -1042,12 +907,8 @@ setInterval(() => {
         document.getElementById('copyCodeBtn').onclick = copySessionCode;
         document.getElementById('createTournamentBtn').onclick = createTournament;
         document.getElementById('joinTournamentBtn').onclick = joinTournament;
-        document.getElementById('avatarBtn').onclick = () => {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-            document.getElementById('profileTab').classList.add('active');
-            document.querySelector('.tab[data-tab="profile"]').classList.add('active');
-        };
+        document.getElementById('avatarBtn').onclick = () => { document.getElementById('profileModal').classList.toggle('hidden'); };
+        document.getElementById('closeProfileModal').onclick = () => { document.getElementById('profileModal').classList.add('hidden'); };
         
         document.querySelectorAll('.avatar-option').forEach(opt => { opt.onclick = () => updateAvatar(opt.getAttribute('data-avatar')); });
         document.querySelectorAll('[data-move]').forEach(btn => { btn.onclick = () => playVsComputer(btn.getAttribute('data-move')); });
@@ -1060,16 +921,22 @@ setInterval(() => {
         
         const token = localStorage.getItem('token');
         if (token) {
-            fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(data => {
+            fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(async data => {
                 if (data.valid) {
-                    document.getElementById('loginSection').classList.add('hidden');
-                    document.getElementById('gameApp').classList.remove('hidden');
-                    loadLeaderboard();
-                    loadMatchHistory();
-                    loadProfileStats();
+                    const notBanned = await checkBanStatus();
+                    if (notBanned) {
+                        document.getElementById('loginSection').classList.add('hidden');
+                        document.getElementById('gameApp').classList.remove('hidden');
+                        loadLeaderboard();
+                        loadMatchHistory();
+                        loadProfileStats();
+                        socket.emit('user-online', { userId: data.user.id, username: data.user.username });
+                        banCheckInterval = setInterval(() => { if (currentUser) checkBanStatus(); }, 30000);
+                    }
                 }
             });
         }
+        
         document.body.addEventListener('click', () => { if (audioContext.state === 'suspended') audioContext.resume(); }, { once: true });
     </script>
 </body>
