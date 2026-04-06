@@ -572,6 +572,87 @@
             document.getElementById('sessionPlayer2Wins').innerText = p2Wins;
             document.getElementById('sessionTies').innerText = ties;
         }
+        // Add this to your index.html script section
+
+// Check if user is banned on every page load/refresh
+async function checkBanStatus() {
+    const token = localStorage.getItem('token');
+    if (!token) return true; // Not logged in is fine
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/user/status`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const data = await response.json();
+        
+        if (data.is_banned) {
+            // User is banned - show message and logout
+            showNotification('Your account has been BANNED by an administrator. Please contact support.', 'error');
+            
+            // Clear local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            currentUser = null;
+            
+            // Show login screen with ban message
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('gameApp').classList.add('hidden');
+            document.getElementById('modeSelection').style.display = 'flex';
+            
+            // Display ban message on login screen
+            document.getElementById('loginMessage').innerHTML = `
+                <div class="error-msg" style="background: rgba(255,75,43,0.2); border: 1px solid #ff4b2b; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <i class="fas fa-ban"></i> 
+                    <strong>Account Banned!</strong><br>
+                    Your account has been banned by an administrator.<br>
+                    Contact support for more information.
+                </div>
+            `;
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Ban check error:', error);
+        return true;
+    }
+}
+
+// Modify your existing token check to include ban check
+const token = localStorage.getItem('token');
+if (token) {
+    // First verify token and check ban status
+    fetch(`${BACKEND_URL}/api/verify-token`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+    }).then(res => res.json()).then(async data => {
+        if (data.valid) {
+            // Check if user is banned
+            const notBanned = await checkBanStatus();
+            if (notBanned) {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('gameApp').classList.remove('hidden');
+                loadLeaderboard();
+                loadMatchHistory();
+                loadProfileStats();
+                socket.emit('user-online', { userId: data.user.id, username: data.user.username });
+            }
+        }
+    });
+}
+
+// Also check ban status when coming back to tab (on focus)
+window.addEventListener('focus', () => {
+    if (currentUser) {
+        checkBanStatus();
+    }
+});
+
+// Check ban status periodically (every 30 seconds)
+setInterval(() => {
+    if (currentUser) {
+        checkBanStatus();
+    }
+}, 30000);
         
         // ============ API CALLS ============
         async function login(username, password) {
