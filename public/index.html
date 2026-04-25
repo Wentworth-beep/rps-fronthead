@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>RPS CYBER ARENA | Kirinyaga University</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0c' rx='20'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%2300f2ff'/%3E%3Crect x='35' y='55' width='30' height='25' fill='%2300f2ff' rx='5'/%3E%3Ctext x='50' y='75' font-size='25' text-anchor='middle' fill='%23000'%3E🥷%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0c' rx='20'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%2300f2ff'/%3E%3Ctext x='50' y='75' font-size='25' text-anchor='middle' fill='%23000'%3E🥷%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
@@ -19,6 +19,7 @@
             transition: all 0.3s ease;
         }
         
+        /* Theme Variables */
         body.theme-cyberpunk { --primary: #00f2ff; --primary-dark: #00aaff; --secondary: #bc13fe; --bg: linear-gradient(135deg, #0a0a0c, #1a0033); }
         body.theme-fire { --primary: #ff4b2b; --primary-dark: #ff6b35; --secondary: #ff8c00; --bg: linear-gradient(135deg, #1a0000, #330000); }
         body.theme-ice { --primary: #00e5ff; --primary-dark: #4dd0e1; --secondary: #00bcd4; --bg: linear-gradient(135deg, #001a33, #000033); }
@@ -87,7 +88,6 @@
         }
         .popup-content h2 { color: gold; margin-bottom: 20px; font-size: 2rem; }
         .popup-content p { margin: 10px 0; font-size: 1.2rem; }
-        .popup-content strong { color: var(--primary); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
@@ -128,35 +128,9 @@
         .input-group { position: relative; margin-bottom: 20px; }
         .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
         .input-group input { width: 100%; padding: 14px 15px 14px 45px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); border-radius: 12px; color: white; }
-        
-        /* Password wrapper for eye icon outside input */
-        .password-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .password-wrapper input {
-            flex: 1;
-            padding: 14px 15px 14px 45px;
-        }
-        .password-toggle-icon {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--primary);
-            border-radius: 12px;
-            padding: 12px 15px;
-            cursor: pointer;
-            color: var(--primary);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .password-toggle-icon:hover {
-            background: var(--primary);
-            color: #000;
-            transform: scale(1.02);
-        }
+        .password-wrapper { display: flex; gap: 10px; align-items: center; }
+        .password-wrapper input { flex: 1; }
+        .password-toggle { background: rgba(0,0,0,0.6); border: 1px solid var(--primary); border-radius: 12px; padding: 12px 15px; cursor: pointer; color: var(--primary); }
         
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: bold; border: none; transition: all 0.3s; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,255,255,0.4); }
@@ -173,7 +147,7 @@
         .history-item.win { border-left: 3px solid #00ff88; background: rgba(0,255,136,0.05); }
         .history-item.lose { border-left: 3px solid #ff4b2b; background: rgba(255,75,43,0.05); }
         
-        .powerup-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
+        .powerup-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
         .powerup-card { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid var(--primary); }
         .powerup-card:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
         .powerup-card i { font-size: 2rem; color: var(--primary); }
@@ -227,29 +201,15 @@
         }
         .notification.error { background: linear-gradient(135deg, #ff4b2b, #ff6b35); color: #fff; }
         .notification.success { background: linear-gradient(135deg, #00ff88, #2ecc71); color: #000; }
-        .notification.warning { background: linear-gradient(135deg, #ffaa00, #ff8c00); color: #000; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
         
         .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 0.8s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        .disabled-move {
-            opacity: 0.5;
-            pointer-events: none;
-            filter: grayscale(0.3);
-        }
-        
-        .tap-to-play {
-            animation: pulse 1s ease-in-out infinite;
-            background: rgba(0,255,255,0.2);
-            border-radius: 20px;
-            padding: 10px;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.02); box-shadow: 0 0 20px var(--primary); }
-        }
+        .disabled-move { opacity: 0.5; pointer-events: none; filter: grayscale(0.3); }
+        .tap-to-play { animation: pulse 1s ease-in-out infinite; background: rgba(0,255,255,0.2); border-radius: 20px; padding: 10px; }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.02); box-shadow: 0 0 20px var(--primary); } }
     </style>
 </head>
 <body class="theme-cyberpunk">
@@ -262,51 +222,27 @@
             </div>
             <div id="loginMessage"></div>
             <div id="loginForm">
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="loginUsername" placeholder="USERNAME">
-                </div>
+                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="loginUsername" placeholder="USERNAME"></div>
                 <div class="password-wrapper">
-                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="loginPassword" placeholder="PASSWORD">
-                    </div>
-                    <div class="password-toggle-icon" onclick="togglePassword('loginPassword', this)">
-                        <i class="fas fa-eye"></i>
-                    </div>
+                    <div class="input-group" style="flex:1; margin-bottom:0;"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="PASSWORD"></div>
+                    <div class="password-toggle" onclick="togglePassword('loginPassword', this)"><i class="fas fa-eye"></i></div>
                 </div>
-                <button id="loginBtn" class="btn-primary" style="width: 100%; margin-top: 20px;">LOGIN</button>
-                <button id="showRegisterBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">REGISTER</button>
+                <button id="loginBtn" class="btn-primary" style="width:100%; margin-top:20px;">LOGIN</button>
+                <button id="showRegisterBtn" class="btn-secondary" style="width:100%; margin-top:10px;">REGISTER</button>
             </div>
-            <div id="registerForm" style="display: none; margin-top: 20px;">
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="regUsername" placeholder="USERNAME">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="regEmail" placeholder="EMAIL">
-                </div>
-                <div class="password-wrapper" style="margin-bottom: 15px;">
-                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="regPassword" placeholder="PASSWORD">
-                    </div>
-                    <div class="password-toggle-icon" onclick="togglePassword('regPassword', this)">
-                        <i class="fas fa-eye"></i>
-                    </div>
+            <div id="registerForm" style="display:none; margin-top:20px;">
+                <div class="input-group"><i class="fas fa-user"></i><input type="text" id="regUsername" placeholder="USERNAME"></div>
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="regEmail" placeholder="EMAIL"></div>
+                <div class="password-wrapper" style="margin-bottom:15px;">
+                    <div class="input-group" style="flex:1; margin-bottom:0;"><i class="fas fa-lock"></i><input type="password" id="regPassword" placeholder="PASSWORD"></div>
+                    <div class="password-toggle" onclick="togglePassword('regPassword', this)"><i class="fas fa-eye"></i></div>
                 </div>
                 <div class="password-wrapper">
-                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                        <i class="fas fa-check-circle"></i>
-                        <input type="password" id="regConfirmPassword" placeholder="CONFIRM PASSWORD">
-                    </div>
-                    <div class="password-toggle-icon" onclick="togglePassword('regConfirmPassword', this)">
-                        <i class="fas fa-eye"></i>
-                    </div>
+                    <div class="input-group" style="flex:1; margin-bottom:0;"><i class="fas fa-check-circle"></i><input type="password" id="regConfirmPassword" placeholder="CONFIRM PASSWORD"></div>
+                    <div class="password-toggle" onclick="togglePassword('regConfirmPassword', this)"><i class="fas fa-eye"></i></div>
                 </div>
-                <button id="confirmRegisterBtn" class="btn-primary" style="width: 100%; margin-top: 20px;">CREATE ACCOUNT</button>
-                <button id="backToLoginBtn" class="btn-secondary" style="width: 100%; margin-top: 10px;">BACK TO LOGIN</button>
+                <button id="confirmRegisterBtn" class="btn-primary" style="width:100%; margin-top:20px;">CREATE ACCOUNT</button>
+                <button id="backToLoginBtn" class="btn-secondary" style="width:100%; margin-top:10px;">BACK TO LOGIN</button>
             </div>
         </div>
 
@@ -337,7 +273,7 @@
             <!-- Mode Selection Tabs -->
             <div class="tab-bar">
                 <div class="tab active" data-tab="computer">VS COMPUTER</div>
-                <div class="tab" data-tab="multiplayer">MULTIPLAYER (10 Rounds)</div>
+                <div class="tab" data-tab="multiplayer">MULTIPLAYER</div>
                 <div class="tab" data-tab="tournament">TOURNAMENT</div>
                 <div class="tab" data-tab="powerups">POWER-UPS & THEMES</div>
                 <div class="tab" data-tab="profile">PROFILE</div>
@@ -376,7 +312,7 @@
             <div id="multiplayerTab" class="tab-content">
                 <div class="game-grid">
                     <div class="glass">
-                        <div class="section-title"><i class="fas fa-wifi"></i> 10-ROUND MULTIPLAYER</div>
+                        <div class="section-title"><i class="fas fa-wifi"></i> MULTIPLAYER</div>
                         <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                             <button id="createSessionBtn" class="btn-primary" style="flex: 1;">CREATE MATCH</button>
                             <input type="text" id="joinSessionCode" placeholder="SESSION CODE" style="flex: 1; text-transform: uppercase; text-align: center; font-size: 1.2rem; letter-spacing: 2px;">
@@ -391,16 +327,12 @@
                             <div id="waitingForOpponent" class="waiting-status">
                                 <div class="waiting-spinner"></div>
                                 <p><i class="fas fa-clock"></i> Waiting for opponent to join...</p>
-                                <p style="font-size: 0.8rem; margin-top: 5px;">Share the code above with your friend</p>
                             </div>
                             
                             <div id="opponentJoined" class="hidden" style="background: rgba(0,255,136,0.2); border-radius: 15px; padding: 15px; margin: 15px 0; text-align: center;">
                                 <i class="fas fa-check-circle" style="font-size: 2rem; color: #00ff88;"></i>
                                 <p><strong>Opponent Joined!</strong></p>
-                                <p id="opponentName">Player has joined the match</p>
-                                <div class="tap-to-play">
-                                    <i class="fas fa-hand-peace"></i> Tap to Play! <i class="fas fa-hand-fist"></i>
-                                </div>
+                                <div class="tap-to-play"><i class="fas fa-hand-peace"></i> Tap to Play! <i class="fas fa-hand-fist"></i></div>
                             </div>
                             
                             <div class="round-display" id="roundDisplay">Round 1 / 10</div>
@@ -432,7 +364,7 @@
             <!-- Tournament Tab -->
             <div id="tournamentTab" class="tab-content">
                 <div class="glass">
-                    <div class="section-title"><i class="fas fa-trophy"></i> 8-PLAYER TOURNAMENT</div>
+                    <div class="section-title"><i class="fas fa-trophy"></i> TOURNAMENT</div>
                     <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                         <button id="createTournamentBtn" class="btn-primary">CREATE TOURNAMENT</button>
                         <input type="text" id="joinTournamentCode" placeholder="TOURNAMENT CODE" style="flex:1;">
@@ -490,19 +422,6 @@
     <div id="roundPopup" class="popup hidden"><div class="popup-content"><h2>ROUND COMPLETE!</h2><p>Winner: <strong id="roundWinner"></strong></p><p>Loser: <strong id="roundLoser"></strong></p></div></div>
     <div id="sessionCompletePopup" class="popup hidden"><div class="popup-content"><h2>MATCH COMPLETE!</h2><p>Winner: <strong id="sessionWinner"></strong></p><p>Loser: <strong id="sessionLoser"></strong></p><p>Final Score: <strong id="sessionFinalScore"></strong></p><p>Coins Earned: <strong id="sessionCoinsEarned">0</strong></p></div></div>
 
-    <!-- Profile Modal -->
-    <div id="profileModal" class="hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px;">
-        <div class="glass"><div class="section-title">CUSTOMIZE AVATAR</div><div class="avatar-selector">
-            <div class="avatar-option" data-avatar="ninja"><i class="fas fa-user-ninja"></i></div>
-            <div class="avatar-option" data-avatar="robot"><i class="fas fa-robot"></i></div>
-            <div class="avatar-option" data-avatar="dragon"><i class="fas fa-dragon"></i></div>
-            <div class="avatar-option" data-avatar="wizard"><i class="fas fa-hat-wizard"></i></div>
-            <div class="avatar-option" data-avatar="ghost"><i class="fas fa-ghost"></i></div>
-            <div class="avatar-option" data-avatar="skull"><i class="fas fa-skull"></i></div>
-            <div class="avatar-option" data-avatar="crown"><i class="fas fa-crown"></i></div>
-        </div><button id="closeProfileModal" style="width: 100%; margin-top: 15px;">CLOSE</button></div>
-    </div>
-
     <script>
         // ============ CONFIGURATION ============
         const BACKEND_URL = 'https://rps-backend-6iq6.onrender.com';
@@ -514,91 +433,28 @@
         let userScore = 0, computerScore = 0;
         let activeSessions = {};
         let sessionInterval = null;
-        let tournaments = [];
-        let currentTournament = null;
-        let banCheckInterval = null;
         let isOpponentJoined = false;
         
         // ============ SOCKET.IO ============
-        const socket = io(BACKEND_URL, {
-            transports: ['websocket', 'polling'],
-            withCredentials: true
-        });
+        const socket = io(BACKEND_URL, { transports: ['polling', 'websocket'] });
         
-        // ============ PASSWORD TOGGLE FUNCTION ============
-        function togglePassword(inputId, toggleBtn) {
-            const input = document.getElementById(inputId);
-            const icon = toggleBtn.querySelector('i');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-        
-        // ============ AUDIO FUNCTIONS ============
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        function playBeep(frequency, duration, volume) {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            oscillator.frequency.value = frequency;
-            gainNode.gain.value = volume || 0.3;
-            oscillator.start();
-            setTimeout(() => { oscillator.stop(); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.1); }, duration);
-        }
-        function playWinSound() { playBeep(880,200,0.3); setTimeout(()=>playBeep(1046.5,300,0.3),200); setTimeout(()=>playBeep(1318.52,500,0.3),500); canvasConfetti({particleCount:150,spread:70,origin:{y:0.6}}); }
-        function playLoseSound() { playBeep(440,300,0.3); setTimeout(()=>playBeep(349.23,400,0.3),300); }
-        function playDrawSound() { playBeep(587.33,200,0.2); setTimeout(()=>playBeep(587.33,200,0.2),250); }
-        function playClickSound() { playBeep(800,50,0.1); }
-        
-        // ============ NOTIFICATION FUNCTION ============
+        // ============ NOTIFICATION ============
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
-            const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : (type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'));
-            notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
         }
         
-        // ============ BAN CHECK FUNCTION ============
-        async function checkBanStatus() {
-            const token = localStorage.getItem('token');
-            if (!token) return true;
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/user/status`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.status === 401 || response.status === 403) return true;
-                const data = await response.json();
-                if (data.is_banned) {
-                    localStorage.removeItem('token');
-                    currentUser = null;
-                    document.getElementById('loginSection').classList.remove('hidden');
-                    document.getElementById('gameApp').classList.add('hidden');
-                    document.getElementById('loginMessage').innerHTML = `<div class="error-msg" style="background: rgba(255,75,43,0.2); border: 2px solid #ff4b2b; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center;"><i class="fas fa-ban" style="font-size: 3rem; color: #ff4b2b; margin-bottom: 10px;"></i><h3 style="color: #ff4b2b;">ACCOUNT BANNED</h3><p>Your account has been banned by an administrator.</p></div>`;
-                    if (banCheckInterval) clearInterval(banCheckInterval);
-                    return false;
-                }
-                return true;
-            } catch (error) { return true; }
-        }
-        
         // ============ THEMES ============
         const themes = { cyberpunk:'Cyberpunk', fire:'Fire', ice:'Ice', nature:'Nature', space:'Space', gold:'Gold' };
-        function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); }
+        function applyTheme(themeId) { document.body.className = `theme-${themeId}`; localStorage.setItem('selectedTheme', themeId); showNotification(`Theme changed to ${themes[themeId]}!`, 'success'); }
         function loadThemes() {
             const container = document.getElementById('themeSelector');
             const html = Object.entries(themes).map(([id, name]) => `<div class="theme-option" data-theme="${id}" style="background: linear-gradient(135deg, var(--primary), var(--secondary));"><i class="fas fa-palette"></i><span>${name}</span></div>`).join('');
             container.innerHTML = html;
-            document.querySelectorAll('.theme-option').forEach(opt => { opt.onclick = () => { applyTheme(opt.getAttribute('data-theme')); playClickSound(); }; });
+            document.querySelectorAll('.theme-option').forEach(opt => { opt.onclick = () => { applyTheme(opt.getAttribute('data-theme')); }; });
         }
         
         // ============ POWER-UPS ============
@@ -611,78 +467,34 @@
         function loadPowerups() {
             const container = document.getElementById('powerupShop');
             container.innerHTML = powerUps.map(p => `<div class="powerup-card" data-powerup="${p.id}"><i class="fas ${p.icon}"></i><div><strong>${p.name}</strong></div><div style="font-size:0.8rem;">${p.description}</div><div style="color:gold; margin:5px 0;">${p.cost} coins</div><button class="buy-powerup">BUY</button></div>`).join('');
-            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { playClickSound(); showNotification(`Bought ${powerUps[i].name}!`, 'success'); }; });
+            document.querySelectorAll('.buy-powerup').forEach((btn, i) => { btn.onclick = () => { showNotification(`Bought ${powerUps[i].name}!`, 'success'); }; });
         }
         
-        // ============ UI HELPERS ============
-        function updateLevelProgress(wins) {
-            const level = Math.floor(wins / 5) + 1;
-            const nextLevelWins = level * 5;
-            const currentLevelWins = (level - 1) * 5;
-            const progress = ((wins - currentLevelWins) / 5) * 100;
-            document.getElementById('levelProgressBar').style.width = `${Math.min(progress, 100)}%`;
-            document.getElementById('currentLevel').innerText = level;
-            document.getElementById('nextLevel').innerText = level + 1;
-            document.getElementById('winsNeededText').innerText = `${nextLevelWins - wins} more wins to reach Level ${level + 1}`;
-        }
-        
-        function showRoundPopup(winner, loser) {
-            document.getElementById('roundWinner').innerText = winner;
-            document.getElementById('roundLoser').innerText = loser || 'None';
-            document.getElementById('roundPopup').classList.remove('hidden');
-            setTimeout(() => document.getElementById('roundPopup').classList.add('hidden'), 3000);
-        }
-        
-        function showSessionCompletePopup(winner, loser, score, coins) {
-            document.getElementById('sessionWinner').innerText = winner;
-            document.getElementById('sessionLoser').innerText = loser || 'None';
-            document.getElementById('sessionFinalScore').innerText = score;
-            document.getElementById('sessionCoinsEarned').innerText = coins;
-            document.getElementById('sessionCompletePopup').classList.remove('hidden');
-            setTimeout(() => document.getElementById('sessionCompletePopup').classList.add('hidden'), 5000);
-        }
-        
-        function updateSessionScore(p1Wins, p2Wins, ties) {
-            document.getElementById('sessionPlayer1Wins').innerText = p1Wins;
-            document.getElementById('sessionPlayer2Wins').innerText = p2Wins;
-            document.getElementById('sessionTies').innerText = ties;
-        }
-        
+        // ============ COMPUTER ANIMATION ============
         function showComputerThinking() {
-            const thinkingText = document.getElementById('computerThinkingText');
-            const moveIcon = document.getElementById('computerMoveIcon');
-            thinkingText.innerHTML = 'Computer is thinking <span class="thinking-animation"></span>';
-            moveIcon.innerHTML = '🤔';
+            document.getElementById('computerThinkingText').innerHTML = 'Computer is thinking <span class="thinking-animation"></span>';
+            document.getElementById('computerMoveIcon').innerHTML = '🤔';
         }
-        
         function showComputerMove(move) {
-            const moveIcon = document.getElementById('computerMoveIcon');
-            const thinkingText = document.getElementById('computerThinkingText');
-            const moveIcons = { rock: '✊', paper: '📄', scissors: '✌️' };
+            const moveIcons = { rock: '✊', paper: '✋', scissors: '✌️' };
             const moveNames = { rock: 'ROCK', paper: 'PAPER', scissors: 'SCISSORS' };
-            moveIcon.innerHTML = moveIcons[move];
-            thinkingText.innerHTML = `Computer chose ${moveNames[move]}!`;
+            document.getElementById('computerMoveIcon').innerHTML = moveIcons[move];
+            document.getElementById('computerThinkingText').innerHTML = `Computer chose ${moveNames[move]}!`;
             setTimeout(() => {
-                thinkingText.innerHTML = 'Click a move to play';
-                moveIcon.innerHTML = '🤖';
+                document.getElementById('computerThinkingText').innerHTML = 'Click a move to play';
+                document.getElementById('computerMoveIcon').innerHTML = '🤖';
             }, 1500);
         }
         
         // ============ API CALLS ============
         async function login(username, password) {
-            playClickSound();
-            showNotification('Logging in...', 'info');
             try {
                 const res = await fetch(`${BACKEND_URL}/api/login`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
-                if (res.ok && data.success) {
-                    if (data.user.is_banned) {
-                        showNotification('Your account has been banned!', 'error');
-                        return;
-                    }
+                if (res.ok) {
                     currentUser = data.user;
                     localStorage.setItem('token', data.token);
                     document.getElementById('loginSection').classList.add('hidden');
@@ -692,51 +504,39 @@
                     document.getElementById('userMMR').textContent = currentUser.mmr;
                     document.getElementById('userCoins').textContent = currentUser.coins;
                     document.getElementById('winStreak').textContent = currentUser.win_streak || 0;
-                    updateLevelProgress(currentUser.total_wins || 0);
+                    socket.emit('user-online', { userId: currentUser.id, username: currentUser.username });
                     loadLeaderboard();
                     loadMatchHistory();
-                    loadProfileStats();
-                    socket.emit('user-online', { userId: currentUser.id, username: currentUser.username });
                     showNotification(`Welcome back, ${currentUser.username}!`, 'success');
-                    if (banCheckInterval) clearInterval(banCheckInterval);
-                    banCheckInterval = setInterval(() => { if (currentUser) checkBanStatus(); }, 30000);
                 } else {
-                    showNotification(data.error || 'Login failed', 'error');
+                    showNotification(data.error, 'error');
                 }
-            } catch (error) {
-                showNotification('Connection error', 'error');
-            }
+            } catch (error) { showNotification('Connection error', 'error'); }
         }
         
         async function register(username, email, password, confirmPassword) {
-            playClickSound();
-            if (!username || !email || !password) { showNotification('Please fill all fields', 'error'); return; }
             if (password !== confirmPassword) { showNotification('Passwords do not match', 'error'); return; }
-            if (password.length < 4) { showNotification('Password must be at least 4 characters', 'error'); return; }
             try {
                 const res = await fetch(`${BACKEND_URL}/api/register`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
                 const data = await res.json();
-                if (res.ok && data.success) {
+                if (res.ok) {
                     showNotification('Registration successful! Please login.', 'success');
                     document.getElementById('registerForm').style.display = 'none';
                     document.getElementById('loginForm').style.display = 'block';
-                    document.getElementById('loginUsername').value = username;
                 } else {
-                    showNotification(data.error || 'Registration failed', 'error');
+                    showNotification(data.error, 'error');
                 }
-            } catch (error) {
-                showNotification('Registration failed', 'error');
-            }
+            } catch (error) { showNotification('Registration failed', 'error'); }
         }
         
         async function loadLeaderboard() {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/leaderboard`);
                 const leaders = await res.json();
-                const html = leaders.map(l => `<div class="leaderboard-item"><div class="leaderboard-rank">#${l.rank}</div><div><i class="fas fa-user-${l.avatar || 'ninja'}"></i> ${l.username}</div><div>${l.wins} wins</div><div>${l.mmr} MMR</div></div>`).join('');
+                const html = leaders.map(l => `<div class="leaderboard-item"><div class="leaderboard-rank">#${l.rank}</div><div>${l.username}</div><div>${l.wins} wins</div><div>${l.mmr} MMR</div></div>`).join('');
                 document.getElementById('leaderboardList').innerHTML = html;
                 document.getElementById('leaderboardList2').innerHTML = html;
             } catch(e) { console.log('Leaderboard error'); }
@@ -748,26 +548,10 @@
             try {
                 const res = await fetch(`${BACKEND_URL}/api/match-history`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const history = await res.json();
-                const html = history.slice(0, 10).map(h => `<div class="history-item ${h.result}">vs ${h.opponent}: ${h.result.toUpperCase()} ${h.mmr_change ? `(${h.mmr_change > 0 ? '+' : ''}${h.mmr_change} MMR)` : ''}<small style="display: block; font-size: 0.7rem; color: #888;">${new Date(h.timestamp).toLocaleTimeString()}</small></div>`).join('');
+                const html = history.slice(0, 10).map(h => `<div class="history-item ${h.result}">vs ${h.opponent}: ${h.result.toUpperCase()}</div>`).join('');
                 document.getElementById('matchHistory').innerHTML = html;
                 document.getElementById('matchHistory2').innerHTML = html;
             } catch(e) { console.log('History error'); }
-        }
-        
-        async function loadProfileStats() {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/user/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const stats = await res.json();
-                document.getElementById('profileWins').innerText = stats.total_wins || 0;
-                document.getElementById('profileGames').innerText = stats.total_games || 0;
-                const winRate = stats.total_games > 0 ? Math.round((stats.total_wins / stats.total_games) * 100) : 0;
-                document.getElementById('profileWinRate').innerText = winRate + '%';
-                document.getElementById('statWins').innerText = stats.total_wins || 0;
-                document.getElementById('statGames').innerText = stats.total_games || 0;
-                document.getElementById('userCoins').innerText = stats.coins || 0;
-            } catch(e) { console.log('Profile stats error'); }
         }
         
         async function playVsComputer(move) {
@@ -786,37 +570,30 @@
                 if (data.result === 'win') {
                     resultText += 'VICTORY!';
                     userScore++;
-                    playWinSound();
                     showNotification('You won! +50 coins', 'success');
-                    updateLevelProgress((currentUser?.total_wins || 0) + 1);
                 } else if (data.result === 'lose') {
                     resultText += 'DEFEAT!';
                     computerScore++;
-                    playLoseSound();
-                    showNotification('You lost! +10 participation coins', 'info');
+                    showNotification('You lost! +10 coins', 'info');
                 } else {
                     resultText += 'DRAW!';
-                    playDrawSound();
-                    showNotification('It\'s a draw! +10 coins', 'info');
+                    showNotification('Draw! +10 coins', 'info');
                 }
                 document.getElementById('computerResult').innerHTML = resultText;
                 document.getElementById('userScore').textContent = userScore;
                 document.getElementById('computerScore').textContent = computerScore;
                 document.getElementById('userCoins').textContent = data.total_coins;
-                document.getElementById('winStreak').textContent = data.win_streak || 0;
+                document.getElementById('winStreak').textContent = data.win_streak;
                 loadMatchHistory();
                 loadLeaderboard();
-                loadProfileStats();
-                if (currentUser) currentUser.total_wins = (currentUser.total_wins || 0) + (data.result === 'win' ? 1 : 0);
-            } catch(e) { console.log('Game error'); }
+            } catch(e) { showNotification('Game error', 'error'); }
         }
         
         // ============ MULTIPLAYER FUNCTIONS ============
         function generateSessionCode() { return Math.random().toString(36).substring(2, 10).toUpperCase(); }
         
         function setMoveButtonsEnabled(enabled) {
-            const moveButtons = document.querySelectorAll('[data-session-move]');
-            moveButtons.forEach(btn => {
+            document.querySelectorAll('[data-session-move]').forEach(btn => {
                 if (enabled) {
                     btn.classList.remove('disabled-move');
                     btn.style.pointerEvents = 'auto';
@@ -830,72 +607,40 @@
         }
         
         function createSession() {
-            playClickSound();
             if (!currentUser) { showNotification('Please login first', 'error'); return; }
-            
             isOpponentJoined = false;
             const sessionCode = generateSessionCode();
             currentSession = sessionCode;
             currentRound = 1;
-            
-            activeSessions[sessionCode] = { 
-                code: sessionCode, 
-                creator: currentUser.username, 
-                creatorId: currentUser.id, 
-                players: [currentUser.username], 
-                rounds: [], 
-                player1Wins: 0, 
-                player2Wins: 0, 
-                ties: 0, 
-                currentRound: 1, 
-                totalRounds: 10, 
-                status: 'waiting' 
-            };
-            
+            activeSessions[sessionCode] = { code: sessionCode, creator: currentUser.username, players: [currentUser.username], player1Wins: 0, player2Wins: 0, ties: 0, currentRound: 1, totalRounds: 10, status: 'waiting' };
             document.getElementById('sessionCodeDisplay').innerText = sessionCode;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
             document.getElementById('waitingForOpponent').classList.remove('hidden');
             document.getElementById('opponentJoined').classList.add('hidden');
-            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Match created! Share code: ' + sessionCode + '</div>';
             showNotification(`Match created! Code: ${sessionCode}`, 'success');
-            updateSessionScore(0, 0, 0);
-            document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
             setMoveButtonsEnabled(false);
             startSessionPolling(sessionCode);
         }
         
         function joinSession() {
-            playClickSound();
             const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
             if (!code) { showNotification('Enter session code', 'error'); return; }
-            
             const session = activeSessions[code];
-            if (!session) { showNotification('Session not found. Make sure the creator created the match.', 'error'); return; }
-            if (session.players.includes(currentUser.username)) { showNotification('You are already in this session', 'error'); return; }
-            
+            if (!session) { showNotification('Session not found', 'error'); return; }
+            if (session.players.includes(currentUser.username)) { showNotification('Already in session', 'error'); return; }
             session.players.push(currentUser.username);
-            session.player2 = currentUser.username;
-            session.player2Id = currentUser.id;
             session.status = 'active';
-            
             currentSession = code;
             currentRound = 1;
             isOpponentJoined = true;
-            
             document.getElementById('sessionCodeDisplay').innerText = code;
             document.getElementById('sessionInfo').classList.remove('hidden');
             document.getElementById('multiGameArea').classList.remove('hidden');
             document.getElementById('waitingForOpponent').classList.add('hidden');
             document.getElementById('opponentJoined').classList.remove('hidden');
-            document.getElementById('opponentName').innerHTML = `<strong>${session.creator}</strong> is ready to play!`;
-            
-            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Joined match! Tap to play!</div>';
             showNotification(`Joined match against ${session.creator}! Tap to play!`, 'success');
-            updateSessionScore(0, 0, 0);
-            document.getElementById('roundDisplay').innerText = 'Round 1 / 10';
             setMoveButtonsEnabled(true);
-            showNotification(`✅ ${currentUser.username} joined the match! Start playing!`, 'success');
             startSessionPolling(code);
         }
         
@@ -904,30 +649,24 @@
             sessionInterval = setInterval(() => {
                 const session = activeSessions[sessionCode];
                 if (session && session.status === 'active') {
-                    updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
+                    document.getElementById('sessionPlayer1Wins').innerText = session.player1Wins;
+                    document.getElementById('sessionPlayer2Wins').innerText = session.player2Wins;
+                    document.getElementById('sessionTies').innerText = session.ties;
                     document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
-                    
                     if (session.players.length >= 2 && !isOpponentJoined) {
                         isOpponentJoined = true;
                         document.getElementById('waitingForOpponent').classList.add('hidden');
                         document.getElementById('opponentJoined').classList.remove('hidden');
-                        document.getElementById('opponentName').innerHTML = `<strong>${session.creator}</strong> is ready to play!`;
                         setMoveButtonsEnabled(true);
-                        showNotification('🎮 Opponent has joined! Tap to play!', 'success');
+                        showNotification('Opponent has joined! Tap to play!', 'success');
                     }
-                    
                     if (session.currentRound > session.totalRounds) {
                         clearInterval(sessionInterval);
-                        const winner = session.player1Wins > session.player2Wins ? session.creator : (session.player2Wins > session.player1Wins ? session.player2 : 'Tie');
-                        const loser = winner === session.creator ? session.player2 : session.creator;
-                        showSessionCompletePopup(winner, loser, `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`, 100);
+                        const winner = session.player1Wins > session.player2Wins ? session.creator : (session.player2Wins > session.player1Wins ? session.players.find(p => p !== session.creator) : 'Tie');
                         showNotification(`${winner} wins the match!`, 'success');
                         currentSession = null;
                         document.getElementById('sessionInfo').classList.add('hidden');
                         document.getElementById('multiGameArea').classList.add('hidden');
-                        document.getElementById('multiStatus').innerHTML = 'Match complete!';
-                        loadLeaderboard();
-                        loadMatchHistory();
                         isOpponentJoined = false;
                     }
                 }
@@ -935,133 +674,82 @@
         }
         
         function makeSessionMove(move) {
-            playClickSound();
             if (!currentSession) { showNotification('No active match', 'error'); return; }
-            
             const session = activeSessions[currentSession];
             if (!session) return;
-            
-            if (session.players.length < 2) {
-                showNotification('Waiting for opponent to join...', 'warning');
-                return;
-            }
-            
+            if (session.players.length < 2) { showNotification('Waiting for opponent...', 'warning'); return; }
             const moves = ['rock', 'paper', 'scissors'];
             const computerMove = moves[Math.floor(Math.random() * 3)];
-            let roundWinner = null, roundLoser = null;
-            
-            if (move === computerMove) { 
-                session.ties++; 
-                roundWinner = 'tie'; 
-                playDrawSound(); 
-                showNotification('Round tied!', 'info');
-            } else if ((move === 'rock' && computerMove === 'scissors') || (move === 'paper' && computerMove === 'rock') || (move === 'scissors' && computerMove === 'paper')) {
-                session.player1Wins++; 
-                roundWinner = currentUser.username; 
-                roundLoser = session.players.find(p => p !== currentUser.username) || 'Opponent'; 
-                playWinSound();
-                showNotification(`🎉 You won round ${session.currentRound}!`, 'success');
+            let roundWinner = null;
+            if (move === computerMove) { session.ties++; roundWinner = 'tie'; showNotification('Round tied!', 'info'); }
+            else if ((move === 'rock' && computerMove === 'scissors') || (move === 'paper' && computerMove === 'rock') || (move === 'scissors' && computerMove === 'paper')) {
+                session.player1Wins++; roundWinner = currentUser.username; showNotification(`You won round ${session.currentRound}!`, 'success');
             } else {
-                session.player2Wins++; 
-                roundWinner = session.players.find(p => p !== currentUser.username) || 'Opponent'; 
-                roundLoser = currentUser.username; 
-                playLoseSound();
-                showNotification(`😢 You lost round ${session.currentRound}!`, 'error');
+                session.player2Wins++; roundWinner = session.players.find(p => p !== currentUser.username); showNotification(`You lost round ${session.currentRound}!`, 'error');
             }
-            
-            session.rounds.push({ round: session.currentRound, playerMove: move, opponentMove: computerMove, winner: roundWinner, loser: roundLoser });
-            showRoundPopup(roundWinner, roundLoser);
-            updateSessionScore(session.player1Wins, session.player2Wins, session.ties);
+            document.getElementById('roundWinner').innerText = roundWinner;
+            document.getElementById('roundLoser').innerText = roundWinner === currentUser.username ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : currentUser.username;
+            document.getElementById('roundPopup').classList.remove('hidden');
+            setTimeout(() => document.getElementById('roundPopup').classList.add('hidden'), 2000);
             session.currentRound++;
-            document.getElementById('roundDisplay').innerText = `Round ${session.currentRound} / ${session.totalRounds}`;
-            document.getElementById('multiStatus').innerHTML = '<div class="success-msg">Round ' + (session.currentRound - 1) + ' complete!</div>';
-            
             if (session.currentRound > session.totalRounds) {
                 const winner = session.player1Wins > session.player2Wins ? currentUser.username : (session.player2Wins > session.player1Wins ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : 'Tie');
-                const loser = winner === currentUser.username ? (session.players.find(p => p !== currentUser.username) || 'Opponent') : currentUser.username;
-                showSessionCompletePopup(winner, loser, `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`, 100);
-                showNotification(`${winner} wins the match!`, 'success');
+                document.getElementById('sessionWinner').innerText = winner;
+                document.getElementById('sessionFinalScore').innerText = `${session.player1Wins} - ${session.player2Wins} (Ties: ${session.ties})`;
+                document.getElementById('sessionCompletePopup').classList.remove('hidden');
+                setTimeout(() => document.getElementById('sessionCompletePopup').classList.add('hidden'), 4000);
                 currentSession = null;
                 document.getElementById('sessionInfo').classList.add('hidden');
                 document.getElementById('multiGameArea').classList.add('hidden');
-                document.getElementById('multiStatus').innerHTML = 'Match complete!';
-                loadLeaderboard();
-                loadMatchHistory();
                 if (sessionInterval) clearInterval(sessionInterval);
-                isOpponentJoined = false;
+                loadLeaderboard();
             }
         }
         
         function copySessionCode() {
             const code = document.getElementById('sessionCodeDisplay').innerText;
             navigator.clipboard.writeText(code);
-            showNotification('Match code copied!', 'success');
-            playClickSound();
+            showNotification('Code copied!', 'success');
         }
         
         // ============ TOURNAMENT FUNCTIONS ============
+        let tournaments = [];
+        let currentTournament = null;
+        
         function createTournament() {
-            playClickSound();
-            if (!currentUser) { showNotification('Please login first', 'error'); return; }
-            const tournamentCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-            tournaments.push({ code: tournamentCode, host: currentUser.username, players: [currentUser.username], status: 'waiting' });
-            currentTournament = tournamentCode;
-            document.getElementById('tournamentStatus').innerHTML = `<div class="success-msg">Tournament created! Code: ${tournamentCode}. Share with friends!</div>`;
-            showNotification(`Tournament created! Code: ${tournamentCode}`, 'success');
+            const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            tournaments.push({ code, host: currentUser.username, players: [currentUser.username], status: 'waiting' });
+            currentTournament = code;
+            showNotification(`Tournament created! Code: ${code}`, 'success');
+            document.getElementById('tournamentStatus').innerHTML = `<div class="success-msg">Tournament created! Code: ${code}. Share with friends!</div>`;
             updateTournamentBracket();
         }
         
         function joinTournament() {
-            playClickSound();
             const code = document.getElementById('joinTournamentCode').value.trim().toUpperCase();
-            if (!code) { showNotification('Enter tournament code', 'error'); return; }
             const tournament = tournaments.find(t => t.code === code);
             if (!tournament) { showNotification('Tournament not found', 'error'); return; }
             if (tournament.players.includes(currentUser.username)) { showNotification('Already joined', 'error'); return; }
             tournament.players.push(currentUser.username);
-            document.getElementById('tournamentStatus').innerHTML = `<div class="success-msg">Joined tournament! ${tournament.players.length}/8 players</div>`;
             showNotification(`Joined tournament! ${tournament.players.length}/8 players`, 'success');
+            document.getElementById('tournamentStatus').innerHTML = `<div class="success-msg">Joined tournament! ${tournament.players.length}/8 players</div>`;
             if (tournament.players.length === 8) {
                 tournament.status = 'active';
-                document.getElementById('tournamentStatus').innerHTML = '<div class="success-msg">Tournament full! Starting bracket...</div>';
-                showNotification('Tournament is full! Bracket starting!', 'success');
+                showNotification('Tournament full! Starting bracket!', 'success');
             }
             updateTournamentBracket();
         }
         
         function updateTournamentBracket() {
-            const bracketDiv = document.getElementById('tournamentBracket');
-            if (currentTournament) {
-                const tournament = tournaments.find(t => t.code === currentTournament);
-                if (tournament) {
-                    bracketDiv.innerHTML = `<div class="bracket-match"><div class="bracket-player ${tournament.players[0] ? 'winner' : ''}">${tournament.players[0] || 'Waiting...'}</div><div class="bracket-player ${tournament.players[1] ? 'winner' : ''}">${tournament.players[1] || 'Waiting...'}</div></div><div class="bracket-match"><div class="bracket-player ${tournament.players[2] ? 'winner' : ''}">${tournament.players[2] || 'Waiting...'}</div><div class="bracket-player ${tournament.players[3] ? 'winner' : ''}">${tournament.players[3] || 'Waiting...'}</div></div><div class="bracket-match"><div class="bracket-player ${tournament.players[4] ? 'winner' : ''}">${tournament.players[4] || 'Waiting...'}</div><div class="bracket-player ${tournament.players[5] ? 'winner' : ''}">${tournament.players[5] || 'Waiting...'}</div></div><div class="bracket-match"><div class="bracket-player ${tournament.players[6] ? 'winner' : ''}">${tournament.players[6] || 'Waiting...'}</div><div class="bracket-player ${tournament.players[7] ? 'winner' : ''}">${tournament.players[7] || 'Waiting...'}</div></div>`;
-                }
-            } else {
-                bracketDiv.innerHTML = '<div style="text-align:center; padding:20px;">Create or join a tournament to see bracket</div>';
+            const tournament = tournaments.find(t => t.code === currentTournament);
+            if (tournament) {
+                document.getElementById('tournamentBracket').innerHTML = `
+                    <div class="bracket-match"><div class="bracket-player">${tournament.players[0] || 'Waiting...'}</div><div class="bracket-player">${tournament.players[1] || 'Waiting...'}</div></div>
+                    <div class="bracket-match"><div class="bracket-player">${tournament.players[2] || 'Waiting...'}</div><div class="bracket-player">${tournament.players[3] || 'Waiting...'}</div></div>
+                    <div class="bracket-match"><div class="bracket-player">${tournament.players[4] || 'Waiting...'}</div><div class="bracket-player">${tournament.players[5] || 'Waiting...'}</div></div>
+                    <div class="bracket-match"><div class="bracket-player">${tournament.players[6] || 'Waiting...'}</div><div class="bracket-player">${tournament.players[7] || 'Waiting...'}</div></div>
+                `;
             }
-        }
-        
-        // ============ TAB NAVIGATION ============
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabId + 'Tab').classList.add('active');
-            event.target.classList.add('active');
-        }
-        
-        // ============ LOGOUT ============
-        function logout() {
-            localStorage.removeItem('token');
-            currentUser = null;
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('gameApp').classList.add('hidden');
-            userScore = 0; computerScore = 0;
-            document.getElementById('userScore').textContent = '0';
-            document.getElementById('computerScore').textContent = '0';
-            if (sessionInterval) clearInterval(sessionInterval);
-            if (banCheckInterval) clearInterval(banCheckInterval);
-            showNotification('Logged out successfully', 'success');
-            isOpponentJoined = false;
         }
         
         // ============ AVATAR UPDATE ============
@@ -1073,11 +761,37 @@
             });
             document.getElementById('avatarIcon').className = `fas fa-user-${avatar}`;
             showNotification(`Avatar changed to ${avatar}!`, 'success');
-            playClickSound();
         }
         
         // ============ SOCKET EVENTS ============
         socket.on('online-count', (data) => { document.getElementById('onlineCount').textContent = data.count; });
+        
+        // ============ UI HELPERS ============
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+            else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+        }
+        
+        function showModeSelection() {
+            document.querySelectorAll('.game-area').forEach(area => area.classList.remove('active'));
+            document.getElementById('modeSelection').style.display = 'flex';
+        }
+        
+        function selectMode(mode) {
+            document.getElementById('modeSelection').style.display = 'none';
+            document.getElementById(mode + 'Mode').classList.add('active');
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            currentUser = null;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('gameApp').classList.add('hidden');
+            if (sessionInterval) clearInterval(sessionInterval);
+            showNotification('Logged out', 'success');
+        }
         
         // ============ EVENT LISTENERS ============
         document.getElementById('loginBtn').onclick = () => login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
@@ -1090,13 +804,12 @@
         document.getElementById('copyCodeBtn').onclick = copySessionCode;
         document.getElementById('createTournamentBtn').onclick = createTournament;
         document.getElementById('joinTournamentBtn').onclick = joinTournament;
-        document.getElementById('avatarBtn').onclick = () => { document.getElementById('profileModal').classList.toggle('hidden'); };
-        document.getElementById('closeProfileModal').onclick = () => { document.getElementById('profileModal').classList.add('hidden'); };
-        
+        document.getElementById('avatarBtn').onclick = () => document.getElementById('profileTab').classList.add('active');
         document.querySelectorAll('.avatar-option').forEach(opt => { opt.onclick = () => updateAvatar(opt.getAttribute('data-avatar')); });
         document.querySelectorAll('[data-move]').forEach(btn => { btn.onclick = () => playVsComputer(btn.getAttribute('data-move')); });
         document.querySelectorAll('[data-session-move]').forEach(btn => { btn.onclick = () => makeSessionMove(btn.getAttribute('data-session-move')); });
-        document.querySelectorAll('.tab').forEach(tab => { tab.onclick = () => switchTab(tab.getAttribute('data-tab')); });
+        document.querySelectorAll('.mode-card').forEach(card => { card.onclick = () => selectMode(card.getAttribute('data-mode')); });
+        document.querySelectorAll('.tab').forEach(tab => { tab.onclick = () => { document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active')); document.getElementById(tab.getAttribute('data-tab') + 'Tab').classList.add('active'); }; });
         
         // ============ INITIALIZATION ============
         loadThemes();
@@ -1104,23 +817,23 @@
         
         const token = localStorage.getItem('token');
         if (token) {
-            fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(async data => {
+            fetch(`${BACKEND_URL}/api/verify-token`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()).then(data => {
                 if (data.valid) {
-                    const notBanned = await checkBanStatus();
-                    if (notBanned) {
-                        document.getElementById('loginSection').classList.add('hidden');
-                        document.getElementById('gameApp').classList.remove('hidden');
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('gameApp').classList.remove('hidden');
+                    fetch(`${BACKEND_URL}/api/user/stats`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()).then(user => {
+                        currentUser = { id: data.user.id, username: data.user.username, ...user };
+                        document.getElementById('rankDisplay').textContent = user.rank;
+                        document.getElementById('userLevel').textContent = user.level;
+                        document.getElementById('userMMR').textContent = user.mmr;
+                        document.getElementById('userCoins').textContent = user.coins;
+                        socket.emit('user-online', { userId: data.user.id, username: data.user.username });
                         loadLeaderboard();
                         loadMatchHistory();
-                        loadProfileStats();
-                        socket.emit('user-online', { userId: data.user.id, username: data.user.username });
-                        banCheckInterval = setInterval(() => { if (currentUser) checkBanStatus(); }, 30000);
-                    }
+                    });
                 }
             });
         }
-        
-        document.body.addEventListener('click', () => { if (audioContext.state === 'suspended') audioContext.resume(); }, { once: true });
     </script>
 </body>
 </html>
